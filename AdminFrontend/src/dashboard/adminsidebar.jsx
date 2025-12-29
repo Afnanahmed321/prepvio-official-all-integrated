@@ -320,7 +320,7 @@ export default function Sidebar() {
       name: "Learn & Perform",
       icon: Target,
       children: [
-        { name: "Service " },
+        { name: "Service" },
         { name: "Courses" },
         { name: "Channels" },
         { name: "Categories" },

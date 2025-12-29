@@ -38,7 +38,7 @@ servicesSchema.pre('save', function (next) {
   next();
 });
 
-const Service = mongoose.model('Service', servicesSchema);
+const Service =  mongoose.models.Service || mongoose.model("Service", servicesSchema);
 export default Service;
 
 

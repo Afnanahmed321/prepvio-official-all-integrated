@@ -88,7 +88,7 @@ const Modal = ({ title, onClose, children }) => (
 /**
  * MAIN COMPONENT: ServiceManagement
  */
-const App = () => {
+const ServiceManagement = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -466,7 +466,7 @@ const App = () => {
   );
 };
 
-export default App;
+export default ServiceManagement;
 
 
 

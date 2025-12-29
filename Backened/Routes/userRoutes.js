@@ -372,6 +372,74 @@ router.get("/dashboard", verifyToken, async (req, res) => {
   });
 });
 
+/* =========================================================
+   ADMIN: GET ALL USERS (FOR USER MANAGEMENT)
+========================================================= */
+router.get("/admin/all-users", async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select("firstName lastName email isVerified createdAt");
+
+    res.json({
+      success: true,
+      data: users.map(u => ({
+        id: u._id,
+        name: `${u.firstName} ${u.lastName}`,
+        email: u.email,
+        featureAccess: "All Features", // placeholder (backend not ready)
+        status: u.isVerified ? "Active" : "Suspended"
+      }))
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+/* =========================================================
+   ADMIN: FULL USER LEARNING DETAILS
+========================================================= */
+router.get("/admin/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const courses = (user.courseProgress || []).map(course => ({
+      courseId: course.courseId,
+      courseTitle: course.courseTitle,
+      channelName: course.channelName,
+      watchedSeconds: course.watchedSeconds,
+      totalSeconds: course.totalSeconds,
+      completed: course.totalSeconds > 0 &&
+                 course.watchedSeconds >= course.totalSeconds,
+      videos: (course.videos || []).map(video => ({
+        videoId: video.videoId,
+        watchedSeconds: video.watchedSeconds,
+        durationSeconds: video.durationSeconds,
+        completed: video.completed,
+        updatedAt: video.updatedAt,
+      })),
+    }));
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+      },
+      courses,
+      savedVideos: user.savedVideos || [],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch user details" });
+  }
+});
+
+
 
 
 export default router;

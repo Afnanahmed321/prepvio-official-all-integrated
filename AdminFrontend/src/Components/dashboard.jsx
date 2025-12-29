@@ -14,7 +14,7 @@ import {
   LogOut, 
   Camera, 
   Building,
-  X // Added for modal close
+  X
 } from 'lucide-react';
 
 // --- Initial Data ---
@@ -29,7 +29,6 @@ const initialAccountDetails = {
 
 const dataByPeriod = {
   'Past 3 months': {
-  // ... (rest of the data is unchanged) ...
     kpiScore: 63.89,
     increase: 2.34,
     kpiData: [
@@ -42,12 +41,6 @@ const dataByPeriod = {
       { name: 'Marlene Kuhlman', tasks: 289, avatar: '👩' },
       { name: 'Kristi Lueilwitz', tasks: 289, avatar: '👨' },
       { name: 'Abel Pollich', tasks: 232, avatar: '👨' }
-    ],
-    employees: [
-      { id: 'OM1246824', name: 'Judy Abbott', role: 'Interactions Manager', performance: 75 },
-      { id: 'OM1245473', name: 'Martin Feeney', role: 'Accountability Specialist', performance: 68 },
-      { id: 'OM4637443', name: 'Ellen Streich', role: 'Mobility Supervisor', performance: 55 },
-      { id: 'OM1536524', name: 'Ellis Lubowitz', role: 'Product Security Engineer', performance: 45 }
     ]
   },
   'Past 6 months': {
@@ -66,12 +59,6 @@ const dataByPeriod = {
       { name: 'Lewis Guthowski', tasks: 542, avatar: '👨' },
       { name: 'Abel Pollich', tasks: 498, avatar: '👨' },
       { name: 'Kristi Lueilwitz', tasks: 456, avatar: '👨' }
-    ],
-    employees: [
-      { id: 'OM1245473', name: 'Martin Feeney', role: 'Accountability Specialist', performance: 82 },
-      { id: 'OM1246824', name: 'Judy Abbott', role: 'Interactions Manager', performance: 78 },
-      { id: 'OM4637443', name: 'Ellen Streich', role: 'Mobility Supervisor', performance: 65 },
-      { id: 'OM1536524', name: 'Ellis Lubowitz', role: 'Product Security Engineer', performance: 58 }
     ]
   },
   'Past year': {
@@ -96,12 +83,6 @@ const dataByPeriod = {
       { name: 'Abel Pollich', tasks: 1089, avatar: '👨' },
       { name: 'Marlene Kuhlman', tasks: 1056, avatar: '👩' },
       { name: 'Kristi Lueilwitz', tasks: 987, avatar: '👨' }
-    ],
-    employees: [
-      { id: 'OM1246824', name: 'Judy Abbott', role: 'Interactions Manager', performance: 88 },
-      { id: 'OM4637443', name: 'Ellen Streich', role: 'Mobility Supervisor', performance: 72 },
-      { id: 'OM1245473', name: 'Martin Feeney', role: 'Accountability Specialist', performance: 70 },
-      { id: 'OM1536524', name: 'Ellis Lubowitz', role: 'Product Security Engineer', performance: 62 }
     ]
   }
 };
@@ -116,7 +97,6 @@ const upcomingMeetings = [
 const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, accountImage, handleImageUpload }) => {
   const [formData, setFormData] = useState(accountDetails);
 
-  // Reset form data when modal opens or main accountDetails change
   useEffect(() => {
     setFormData(accountDetails);
   }, [accountDetails, isOpen]);
@@ -128,15 +108,14 @@ const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setAccountDetails(formData); // Update the main state in Dashboard
-    onClose(); // Close the modal
+    setAccountDetails(formData);
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 md:p-8">
-      {/* Modal Content Card */}
       <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl border border-white/50 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Edit Profile</h2>
@@ -146,7 +125,6 @@ const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, 
         </div>
         
         <form onSubmit={handleSubmit}>
-          {/* Profile Picture and Name */}
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
             <div className="relative flex-shrink-0">
               {accountImage ? (
@@ -179,7 +157,6 @@ const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, 
             </div>
           </div>
 
-          {/* Other Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -227,7 +204,6 @@ const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, 
             </div>
           </div>
           
-          {/* Form Actions */}
           <div className="flex justify-end gap-4 mt-8">
             <button 
               type="button" 
@@ -249,21 +225,33 @@ const EditProfileModal = ({ isOpen, onClose, accountDetails, setAccountDetails, 
   );
 };
 
-
 // --- Main Dashboard Component ---
 const Dashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Past 3 months');
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [accountImage, setAccountImage] = useState(null);
-  
-  // Changed accountDetails to be stateful
   const [accountDetails, setAccountDetails] = useState(initialAccountDetails);
-  
-  // Added state for the modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  // Backend data states
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch dashboard data from backend
+  useEffect(() => {
+    fetch('http://localhost:8000/api/dashboard')
+      .then(res => res.json())
+      .then(data => {
+        setDashboardData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Dashboard fetch failed', err);
+        setLoading(false);
+      });
+  }, []);
+
   const handleImageUpload = (e) => {
-  // ... (function is unchanged) ...
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -274,10 +262,26 @@ const Dashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-orange-200 via-orange-100 to-gray-300 min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-semibold text-gray-700">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="bg-gradient-to-br from-orange-200 via-orange-100 to-gray-300 min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-semibold text-red-600">Failed to load dashboard data</div>
+      </div>
+    );
+  }
+
   const currentData = dataByPeriod[selectedPeriod];
   const kpiData = currentData.kpiData;
   const topPerformers = currentData.topPerformers;
-  const employees = currentData.employees;
+  const employees = dashboardData.employees || [];
 
   return (
     <div className="bg-gradient-to-br from-orange-200 via-orange-100 to-gray-300 p-8">
@@ -286,13 +290,12 @@ const Dashboard = () => {
           
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
-          {/* ... (header content is unchanged) ... */}
             <div className="flex items-center gap-3">
-              <div className="bg-orange-600 p-2 rounded-xl">
+              {/* <div className="bg-orange-600 p-2 rounded-xl">
                 <div className="w-6 h-6 bg-orange-400 rounded"></div>
-              </div>
-              <span className="text-gray-600 font-semibold">HReazec</span>
-              <h1 className="text-4xl font-bold text-gray-800 ml-8">Dashboard</h1>
+              </div> */}
+              {/* <span className="text-gray-600 font-semibold">HReazec</span> */}
+              <h1 className="text-4xl font-bold text-gray-800 ml-8">Employees Dashboard</h1>
             </div>
             
             {/* Account Menu */}
@@ -371,7 +374,6 @@ const Dashboard = () => {
                     </div>
 
                     <div className="border-t border-gray-200 p-2">
-                      {/* This button now opens the modal */}
                       <button 
                         onClick={() => {
                           setIsEditModalOpen(true);
@@ -396,9 +398,8 @@ const Dashboard = () => {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Main Content */}
             <div className="flex-1 space-y-6">
-              {/* Stats Cards */}
+              {/* Stats Cards - Using Backend Data */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* ... (stats cards are unchanged) ... */}
                 <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-orange-100 p-2 rounded-lg">
@@ -406,31 +407,22 @@ const Dashboard = () => {
                     </div>
                     <span className="text-xs text-gray-600">Total Employees</span>
                   </div>
-                  <div className="text-2xl font-bold">49,229</div>
+                  <div className="text-2xl font-bold">{dashboardData.totalEmployees || 0}</div>
                 </div>
                 <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-orange-100 p-2 rounded-lg">
                       <Briefcase className="w-5 h-5 text-orange-600" />
                     </div>
-                    <span className="text-xs text-gray-600">Total Project</span>
+                    <span className="text-xs text-gray-600">Total Services</span>
                   </div>
-                  <div className="text-2xl font-bold">49,229</div>
+                  <div className="text-2xl font-bold">{dashboardData.totalServices || 0}</div>
                 </div>
-                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-orange-100 p-2 rounded-lg">
-                      <UserPlus className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <span className="text-xs text-gray-600">Job Applicant</span>
-                  </div>
-                  <div className="text-2xl font-bold">49,229</div>
-                </div>
+                
               </div>
 
               {/* KPI Score Section */}
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl">
-              {/* ... (kpi section is unchanged) ... */}
+              {/* <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold">Average KPI Score</h2>
                   <select 
@@ -485,55 +477,57 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              {/* Employees Table */}
+              {/* Employees Table - Using Backend Data */}
               <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl">
-              {/* ... (employees table is unchanged) ... */}
                 <h2 className="text-xl font-bold mb-4">Employees</h2>
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-sm text-gray-600 border-b border-gray-200">
-                      <th className="pb-3 font-medium">ID</th>
-                      <th className="pb-3 font-medium">Name</th>
-                      <th className="pb-3 font-medium">Role</th>
-                      <th className="pb-3 font-medium">Performance</th>
-                      <th className="pb-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map((emp, i) => (
-                      <tr key={i} className="border-b border-gray-100">
-                        <td className="py-4 text-sm text-gray-600">{emp.id}</td>
-                        <td className="py-4 text-sm font-medium">{emp.name}</td>
-                        <td className="py-4 text-sm text-gray-600">{emp.role}</td>
-                        <td className="py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full"
-                                style={{ width: `${emp.performance}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <MoreHorizontal className="w-5 h-5" />
-                          </button>
-                        </td>
+                {employees.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No employees found</p>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-sm text-gray-600 border-b border-gray-200">
+                        <th className="pb-3 font-medium">ID</th>
+                        <th className="pb-3 font-medium">Name</th>
+                        <th className="pb-3 font-medium">Role</th>
+                        {/* <th className="pb-3 font-medium">Performance</th> */}
+                        <th className="pb-3"></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {employees.map((emp, i) => (
+                        <tr key={emp.empId || i} className="border-b border-gray-100">
+                          <td className="py-4 text-sm text-gray-600">{emp.empId}</td>
+                          <td className="py-4 text-sm font-medium">{emp.name}</td>
+                          <td className="py-4 text-sm text-gray-600">{emp.role}</td>
+                          <td className="py-4">
+                            {/* <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full"
+                                  style={{ width: `${emp.performance || 0}%` }}
+                                ></div>
+                              </div>
+                            </div> */}
+                          </td>
+                          {/* <td className="py-4">
+                            <button className="text-gray-400 hover:text-gray-600">
+                              <MoreHorizontal className="w-5 h-5" />
+                            </button>
+                          </td> */}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
 
             {/* Right Sidebar */}
             <div className="w-full lg:w-72 space-y-6 flex-shrink-0">
               {/* Upcoming Meetings */}
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl">
-              {/* ... (meetings list is unchanged) ... */}
+              {/* <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">Upcoming Meeting</h3>
                 <div className="space-y-4">
                   {upcomingMeetings.map((meeting, i) => (
@@ -555,11 +549,10 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Working Format */}
-              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl">
-              {/* ... (working format is unchanged) ... */}
+              {/* <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl">
                 <h3 className="font-semibold mb-4">Working Format</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -584,7 +577,7 @@ const Dashboard = () => {
                     <div className="text-orange-500 font-semibold">56.4%</div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
