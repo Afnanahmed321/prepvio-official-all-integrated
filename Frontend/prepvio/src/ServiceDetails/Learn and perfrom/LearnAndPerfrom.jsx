@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Star, Users, Clock, Search, ArrowRight, BookOpen, Code, Database, PenTool, Zap, Sparkles } from "lucide-react";
+import { Star, Users, Clock, Search, ArrowRight, BookOpen, Code, Database, PenTool, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Animation for floating stickers
@@ -32,46 +32,80 @@ const floatReverseVariants = {
 
 function LearnAndPerform() {
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState(["All"]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const navigate = useNavigate();
 
-  const categories = [
-    "All",
-    "Programming",
-    "Data Science",
-    "Design",
-    "Networking",
-    "Management",
-    "Marketing",
-    "Cybersecurity",
-  ];
-
-  // ✅ BACKEND LOGIC
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/courses");
-        setCourses(res.data);
+        const [coursesRes, categoriesRes] = await Promise.all([
+          axios.get("http://localhost:8000/api/courses"),
+          axios.get("http://localhost:8000/api/categories")
+        ]);
+
+        // 1. Handle Courses
+        const coursesData = Array.isArray(coursesRes.data) 
+            ? coursesRes.data 
+            : (coursesRes.data.courses || coursesRes.data.data || []);
+        
+        setCourses(coursesData);
+
+        // 2. Handle Categories (Matches Admin Logic)
+        let rawCategories = [];
+        const catResponse = categoriesRes.data;
+
+        // Check various ways backend might send data
+        if (Array.isArray(catResponse)) {
+            rawCategories = catResponse;
+        } else if (catResponse.data && Array.isArray(catResponse.data)) {
+            rawCategories = catResponse.data;
+        } else if (catResponse.categories && Array.isArray(catResponse.categories)) {
+            rawCategories = catResponse.categories;
+        }
+
+        // Extract names
+        const categoryNames = rawCategories.map((cat) => {
+            return typeof cat === 'object' ? cat.name : cat;
+        });
+
+        const uniqueCategories = ["All", ...new Set(categoryNames.filter(Boolean))];
+        setCategories(uniqueCategories);
+
       } catch (err) {
-        console.error("Failed to load courses:", err);
-        setError("Failed to load courses. Please try again later.");
+        console.error("Failed to load data:", err);
+        setError("Failed to load content. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
+
+    fetchData();
   }, []);
 
+  // ✅ UPDATED FILTERING LOGIC (Matches Admin Panel)
   const filteredCourses = courses.filter((course) => {
+    // 1. Search Logic
     const courseName = course.name || course.title || '';
     const matchesSearch = courseName.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" ||
-      (course.category || "Other") === selectedCategory;
+
+    // 2. Category Logic
+    if (selectedCategory === "All") return matchesSearch;
+
+    // ⬇️ THIS IS THE FIX FROM YOUR ADMIN CODE ⬇️
+    // We check 'categoryId' first (Admin style), then fallback to 'category'
+    const categoryObj = course.categoryId || course.category;
+    
+    // Extract the name safely
+    const courseCategoryName = categoryObj?.name || "Uncategorized";
+
+    // Compare
+    const matchesCategory = courseCategoryName === selectedCategory;
+
     return matchesSearch && matchesCategory;
   });
 
@@ -84,13 +118,10 @@ function LearnAndPerform() {
         <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-gradient-to-t from-pink-50 to-transparent rounded-full blur-[120px] opacity-60" />
       </div>
 
-      {/* Main Content Container */}
       <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-8 pb-20">
         
-        {/* ✅ HERO SECTION WITH STICKERS */}
+        {/* HERO SECTION */}
         <div className="max-w-5xl mx-auto relative mb-16">
-            
-            {/* FLOATING DECORATIONS (The "Stickers") */}
             <motion.div variants={floatVariants} animate="animate" className="absolute -top-6 -left-6 md:top-0 md:-left-12 z-20 hidden sm:block">
                 <div className="bg-[#D4F478] p-4 rounded-2xl shadow-xl transform -rotate-12 border-2 border-black">
                     <Code className="w-6 h-6 md:w-8 md:h-8 text-black" />
@@ -109,7 +140,6 @@ function LearnAndPerform() {
                 </div>
             </motion.div>
 
-             {/* SVG Scribble Decoration */}
              <div className="absolute top-10 right-10 z-20 opacity-60 pointer-events-none hidden md:block">
                 <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
                     <path d="M10,50 Q30,10 50,50 T90,50" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
@@ -118,15 +148,11 @@ function LearnAndPerform() {
                 </svg>
             </div>
 
-
-            {/* HERO CARD */}
             <div className="bg-[#1A1A1A] rounded-[2rem] md:rounded-[3.5rem] p-8 md:p-12 text-center relative overflow-hidden shadow-2xl shadow-gray-900/20">
-                {/* "New" Badge Sticker */}
                 <div className="absolute top-6 right-6 z-20 bg-red-500 text-white text-xs font-black uppercase tracking-widest py-1 px-3 rounded-full shadow-lg transform rotate-6 border border-red-400">
                     New Courses
                 </div>
 
-                {/* Background Image Overlay */}
                 <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none">
                     <img 
                         src="https://res.cloudinary.com/dknafbwlt/image/upload/v1756976555/samples/ecommerce/leather-bag-gray.jpg" 
@@ -146,7 +172,6 @@ function LearnAndPerform() {
                         <span className="text-gray-500 block mt-2 text-xl sm:text-2xl md:text-4xl">Dream Big. Learn Fast.</span>
                     </h1>
                     
-                    {/* Search Bar */}
                     <div className="relative max-w-lg mx-auto mt-6 md:mt-8 group">
                         <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:bg-[#D4F478]/30 transition-colors duration-500" />
                         <div className="relative flex items-center bg-white rounded-full p-1.5 md:p-2 shadow-xl">
@@ -226,6 +251,9 @@ function LearnAndPerform() {
 
 // Course Card Component
 const CourseCard = ({ course, navigate }) => {
+  // Safe Access to Category Name for Display
+  const categoryName = course.categoryId?.name || course.category?.name || "General";
+
   return (
     <motion.div
       layout
@@ -236,7 +264,6 @@ const CourseCard = ({ course, navigate }) => {
       onClick={() => navigate(`/services/learn-and-perform/${course._id}`)}
       className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-gray-200/50 border border-gray-100 cursor-pointer flex flex-col h-full group relative overflow-hidden"
     >
-      {/* Image Container */}
       <div className="relative h-48 md:h-52 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-gray-100 mb-5">
         {course.imageUrl ? (
           <img
@@ -245,7 +272,7 @@ const CourseCard = ({ course, navigate }) => {
             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = `https://placehold.co/400x300/F3F4F6/9CA3AF?text=${course.name.substring(0, 2)}`;
+              e.target.src = `https://placehold.co/400x300/F3F4F6/9CA3AF?text=${course.name ? course.name.substring(0, 2) : "CO"}`;
             }}
           />
         ) : (
@@ -254,21 +281,18 @@ const CourseCard = ({ course, navigate }) => {
           </div>
         )}
         
-        {/* Rating Badge */}
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
             <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-            <span className="text-xs font-bold text-gray-900">{course.rating ? course.rating.toFixed(1) : "N/A"}</span>
+            <span className="text-xs font-bold text-gray-900">{course.rating ? course.rating.toFixed(1) : "4.5"}</span>
         </div>
         
-        {/* Category Badge */}
         <div className="absolute bottom-4 left-4">
              <span className="px-3 py-1.5 bg-[#1A1A1A]/80 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded-lg border border-white/20">
-                {course.category || "General"}
+                {categoryName}
             </span>
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-2 pb-2 flex-1 flex flex-col">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
           {course.name || course.title}
@@ -277,7 +301,7 @@ const CourseCard = ({ course, navigate }) => {
         <div className="flex items-center gap-4 text-gray-400 text-xs font-medium mb-6">
             <div className="flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
-                <span>{course.students ? course.students.toLocaleString() : "0"} Students</span>
+                <span>{course.students ? course.students.toLocaleString() : "500"} Students</span>
             </div>
              <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
@@ -285,7 +309,6 @@ const CourseCard = ({ course, navigate }) => {
             </div>
         </div>
 
-        {/* Enroll Button */}
         <button className="mt-auto w-full bg-gray-50 text-gray-900 py-3 md:py-4 rounded-xl font-bold text-sm hover:bg-[#D4F478] hover:text-black transition-all group/btn flex items-center justify-center gap-2">
             View Course
             <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
@@ -296,6 +319,8 @@ const CourseCard = ({ course, navigate }) => {
 };
 
 export default LearnAndPerform;
+
+
 
 
 

@@ -5,11 +5,11 @@ import dotenv from 'dotenv';
 import servicesRouter from './server/routes/services.route.js';
 import coursesRouter from './server/routes/courses.route.js';
 import channelsRouter from './server/routes/channels.route.js';
-import playlistsRouter from './Server/routes/playlists.route.js';
-import quizzesRouter from './Server/routes/quizzes.route.js';
+import playlistsRouter from './server/routes/playlists.route.js';
+import quizzesRouter from './server/routes/quizzes.route.js';
 import videosRouter from './server/routes/videos.route.js'; // ✅ Import videos route
-import categoryRoutes from "./Server/routes/categories.route.js";
-import dashboardRouter from "./Server/routes/dashboard.route.js";
+import categoryRoutes from "./server/routes/categories.route.js";
+import dashboardRouter from "./server/routes/dashboard.route.js";
 
 
 dotenv.config();

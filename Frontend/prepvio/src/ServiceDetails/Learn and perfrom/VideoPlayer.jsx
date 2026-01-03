@@ -56,7 +56,11 @@ const ChannelCard = ({ name, imageUrl }) => (
 const PlayListItem = ({ video, index, duration, onVideoSelect, isPlaying, videoProgress }) => {
   const title = video?.snippet?.title || "No Title";
   const thumbnail = video?.snippet?.thumbnails?.medium?.url;
-  const videoId = video?.snippet?.resourceId?.videoId;
+  const videoId =
+  video?.snippet?.resourceId?.videoId ||
+  video?.id ||
+  null;
+
   const progress = videoProgress[videoId] || 0;
   const totalSeconds = duration || 0;
 
@@ -136,7 +140,11 @@ const PlayListItem = ({ video, index, duration, onVideoSelect, isPlaying, videoP
 
 // Player Component
 const PlayListPlayer = ({ video, onPlayerReady, onStateChange, onWatchLater, isSaved, isSaving }) => {
-  const videoId = video?.snippet?.resourceId?.videoId;
+  const videoId =
+  video?.snippet?.resourceId?.videoId ||
+  video?.id ||
+  null;
+
   const title = video?.snippet?.title || "";
 
   useEffect(() => {
@@ -165,7 +173,7 @@ const PlayListPlayer = ({ video, onPlayerReady, onStateChange, onWatchLater, isS
   const opts = {
     height: "100%",
     width: "100%",
-    playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0 },
+    playerVars: { autoplay: 0, controls: 1, modestbranding: 1, rel: 0 },
   };
 
   return (
@@ -174,11 +182,11 @@ const PlayListPlayer = ({ video, onPlayerReady, onStateChange, onWatchLater, isS
       <div className="relative w-full aspect-video bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-[6px] border-white ring-1 ring-gray-200 group z-10 transition-transform duration-500">
         <div className="absolute inset-0">
              <YouTube 
-                key={videoId}
-                videoId={videoId} 
-                opts={opts} 
-                onReady={onPlayerReady} 
-                onStateChange={onStateChange} 
+                key={`${videoId}-${video?.id || "playlist"}`}
+  videoId={videoId}
+  opts={opts}
+  onReady={onPlayerReady}
+  onStateChange={onStateChange}
                 className="w-full h-full"
                 iframeClassName="w-full h-full"
              />
@@ -239,7 +247,11 @@ const PlayListSidebar = ({ videos, durations, onVideoSelect, selectedVideoId, ch
 
         <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative z-10">
           {videos.map((video, index) => {
-            const videoId = video?.snippet?.resourceId?.videoId || `item-${index}`;
+            const videoId =
+  video?.snippet?.resourceId?.videoId ||
+  video?.id ||
+  `item-${index}`;
+
             const key = videoId || video?.id || index;
             return (
               <PlayListItem
@@ -500,19 +512,22 @@ export default function VideoPlayer() {
      PLAYER HANDLERS
   ====================================================== */
   const handlePlayerReady = (event) => {
-    const playerInstance = event.target;
-    setPlayer(playerInstance);
+  const playerInstance = event.target;
+  setPlayer(playerInstance);
 
-    const savedTime = videoProgress[selectedVideoId];
+  // ✅ Make sure selectedVideoId is set before this runs
+  const savedTime = videoProgress[selectedVideoId];
 
+  try {
     if (savedTime && savedTime > 5) {
-      setTimeout(() => {
-        try {
-          playerInstance.seekTo(savedTime, true);
-        } catch {}
-      }, 300);
+      playerInstance.seekTo(savedTime, true);
     }
-  };
+    playerInstance.playVideo(); // 🔥 REQUIRED FOR SINGLE VIDEO
+  } catch (err) {
+    console.error("Error in handlePlayerReady:", err);
+  }
+};
+
 
   const handleStateChange = (event) => {
     const playerInstance = event.target;
@@ -546,28 +561,37 @@ export default function VideoPlayer() {
   };
 
   const handleVideoSelect = (video) => {
-    // Save current video before switch
-    if (player && selectedVideoId) {
-      try {
-        const time = Math.floor(player.getCurrentTime());
-        saveProgress(time);
-      } catch {}
-    }
+  // Save current video before switch
+  if (player && selectedVideoId) {
+    try {
+      const time = Math.floor(player.getCurrentTime());
+      saveProgress(time);
+    } catch {}
+  }
 
-    if (player?.interval) {
-      clearInterval(player.interval);
-      player.interval = null;
-    }
+  if (player?.interval) {
+    clearInterval(player.interval);
+    player.interval = null;
+  }
 
-    lastSavedRef.current = 0;
+  lastSavedRef.current = 0;
 
-    setSelectedVideo(video);
-    setSelectedVideoId(video.snippet.resourceId.videoId);
-    setShownQuizzes(new Set());
-    setQuizQueue([]);
-    setIsQuizActive(false);
-    setCurrentQuiz(null);
-  };
+  // ✅ FIX STARTS HERE
+  const vid =
+  initialVideo?.snippet?.resourceId?.videoId ||
+  initialVideo?.id;
+
+setSelectedVideo(initialVideo);
+setSelectedVideoId(vid);
+
+  // ✅ FIX ENDS HERE
+
+  setShownQuizzes(new Set());
+  setQuizQueue([]);
+  setIsQuizActive(false);
+  setCurrentQuiz(null);
+};
+
 
   /* ======================================================
      WATCH LATER
@@ -575,7 +599,10 @@ export default function VideoPlayer() {
   const handleWatchLater = async () => {
     if (!selectedVideo) return;
 
-    const videoId = selectedVideo.snippet.resourceId.videoId;
+    const videoId =
+  selectedVideo?.snippet?.resourceId?.videoId ||
+  selectedVideo?.id;
+
     if (savedVideoIds.has(videoId)) return;
 
     try {
@@ -700,7 +727,12 @@ export default function VideoPlayer() {
     const fetchPlaylists = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/playlists/${channelId}/${courseId}`);
+        const response = await axios.get(`${BASE_URL}/playlists`, {
+  params: {
+    channelId,
+    courseId
+  }
+});
         const data = response.data.data;
         if (Array.isArray(data) && data.length > 0) {
           setSelectedPlaylist(data[0]);
@@ -718,140 +750,160 @@ export default function VideoPlayer() {
   }, [channelId, courseId]);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      if (!selectedPlaylist || !channelInfo) return;
+  const fetchContent = async () => {
+    if (!selectedPlaylist || !channelInfo) return;
 
-      const contentLink = selectedPlaylist.link;
-      const contentType = selectedPlaylist.type;
+    const contentLink = selectedPlaylist.link;
+    const contentType = selectedPlaylist.type;
 
-      let videoItems = [];
+    let videoItems = [];
 
+    try {
+      // ===============================
+      // 1️⃣ FETCH VIDEOS
+      // ===============================
+      if (contentType === "playlist") {
+        const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${contentLink}&key=${YOUTUBE_API_KEY}&maxResults=50`;
+        const playlistRes = await youtubeaxios.get(playlistUrl);
+
+        videoItems = playlistRes.data.items || [];
+      } else if (contentType === "video") {
+  const videoId = contentLink; // 🔥 already a video ID
+
+  if (!videoId) {
+    console.error("❌ Missing videoId for single video");
+    return;
+  }
+
+  const videoUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${YOUTUBE_API_KEY}`;
+  const videoRes = await youtubeaxios.get(videoUrl);
+
+  const videoItem = videoRes.data.items?.[0];
+
+  if (videoItem) {
+    videoItems = [
+      {
+        id: videoItem.id,
+        snippet: {
+          ...videoItem.snippet,
+          resourceId: { videoId: videoItem.id },
+        },
+        contentDetails: videoItem.contentDetails,
+      },
+    ];
+  }
+}
+
+
+
+      if (!videoItems.length) return;
+
+      setVideos(videoItems);
+
+      // ===============================
+      // 2️⃣ SELECT VIDEO (FIXED)
+      // ===============================
+      let initialVideo = null;
+
+      if (targetVideoId) {
+        initialVideo = videoItems.find((v) => {
+          const vid =
+            v?.snippet?.resourceId?.videoId ||
+            v?.id;
+          return vid === targetVideoId;
+        });
+      }
+
+      if (!initialVideo) {
+        initialVideo = videoItems[0];
+      }
+
+      const selectedVid =
+        initialVideo?.snippet?.resourceId?.videoId ||
+        initialVideo?.id;
+
+      setSelectedVideo(initialVideo);
+      setSelectedVideoId(selectedVid);
+
+      // ===============================
+      // 3️⃣ START LEARNING
+      // ===============================
       try {
-        // ===============================
-        // 1️⃣ FETCH VIDEOS
-        // ===============================
-        if (contentType === "playlist") {
-          const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${contentLink}&key=${YOUTUBE_API_KEY}&maxResults=50`;
-          const playlistRes = await youtubeaxios.get(playlistUrl);
-          videoItems = playlistRes.data.items || [];
-        } else if (contentType === "video") {
-          const videoUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${contentLink}&key=${YOUTUBE_API_KEY}`;
-          const videoRes = await youtubeaxios.get(videoUrl);
-          const videoItem = videoRes.data.items?.[0];
+        await axios.post(
+          `${USER_API}/users/start-learning`,
+          {
+            courseId,
+            courseTitle: selectedPlaylist.courseId?.name || "Unknown Course",
+            courseThumbnail: "",
+            channelId,
+            channelName: channelInfo.name,
+            channelThumbnail: channelInfo.imageUrl || "",
+          },
+          { withCredentials: true }
+        );
 
-          if (videoItem) {
-            videoItems = [
-              {
-                id: videoItem.id,
-                snippet: {
-                  ...videoItem.snippet,
-                  resourceId: { videoId: videoItem.id },
-                },
-                contentDetails: videoItem.contentDetails,
-              },
-            ];
-          }
-        }
+        console.log("✅ start-learning initialized");
+      } catch (err) {
+        console.error(
+          "❌ start-learning failed",
+          err.response?.data || err.message
+        );
+      }
 
-        if (!videoItems.length) return;
+      // ===============================
+      // 4️⃣ FETCH DURATIONS (FIXED)
+      // ===============================
+      const videoIds = videoItems
+        .map((v) => v?.snippet?.resourceId?.videoId || v?.id)
+        .filter(Boolean)
+        .join(",");
 
-        setVideos(videoItems);
+      if (videoIds) {
+        const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+        const videosRes = await youtubeaxios.get(videosUrl);
 
-        // ===============================
-        // 2️⃣ SELECT VIDEO
-        // ===============================
-        let initialVideo = null;
-
-        if (targetVideoId) {
-          initialVideo = videoItems.find(
-            (v) => v.snippet.resourceId.videoId === targetVideoId
+        const newDurations = {};
+        videosRes.data.items?.forEach((video) => {
+          newDurations[video.id] = durationToSeconds(
+            formatDuration(video.contentDetails.duration)
           );
-        }
+        });
 
-        if (!initialVideo) {
-          initialVideo = videoItems[0];
-        }
+        setDurations(newDurations);
+      }
 
-        setSelectedVideo(initialVideo);
-        setSelectedVideoId(initialVideo.snippet.resourceId.videoId);
+      // ===============================
+      // 5️⃣ FETCH QUIZZES
+      // ===============================
+      try {
+        const quizRes = await axios.get(
+          `${BASE_URL}/quizzes/by-playlist-document/${selectedPlaylist._id}`
+        );
 
-        // ===============================
-        // 3️⃣ START LEARNING
-        // ===============================
-        try {
-          await axios.post(
-            `${USER_API}/users/start-learning`,
-            {
-              courseId,
-              courseTitle: selectedPlaylist.courseId?.name || "Unknown Course",
-              courseThumbnail: "",
-              channelId,
-              channelName: channelInfo.name,
-              channelThumbnail: channelInfo.imageUrl || "",
-            },
-            { withCredentials: true }
-          );
+        if (quizRes.data.success) {
+          const allQuestions =
+            quizRes.data.data?.videos?.flatMap((v) =>
+              v.questions.map((q) => ({
+                ...q,
+                videoId: v.videoId,
+              }))
+            ) || [];
 
-          console.log("✅ start-learning initialized");
-        } catch (err) {
-          console.error(
-            "❌ start-learning failed",
-            err.response?.data || err.message
-          );
-        }
-
-        // ===============================
-        // 4️⃣ FETCH DURATIONS
-        // ===============================
-        const videoIds = videoItems
-          .map((v) => v.snippet.resourceId.videoId)
-          .join(",");
-
-        if (videoIds) {
-          const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
-          const videosRes = await youtubeaxios.get(videosUrl);
-
-          const newDurations = {};
-          videosRes.data.items?.forEach((video) => {
-            newDurations[video.id] = durationToSeconds(
-              formatDuration(video.contentDetails.duration)
-            );
-          });
-
-          setDurations(newDurations);
-        }
-
-        // ===============================
-        // 5️⃣ FETCH QUIZZES
-        // ===============================
-        try {
-          const quizRes = await axios.get(
-            `${BASE_URL}/quizzes/by-playlist-document/${selectedPlaylist._id}`
-          );
-
-          if (quizRes.data.success) {
-            const allQuestions =
-              quizRes.data.data?.videos?.flatMap((v) =>
-                v.questions.map((q) => ({
-                  ...q,
-                  videoId: v.videoId,
-                }))
-              ) || [];
-
-            setQuizQuestions(allQuestions);
-          } else {
-            setQuizQuestions([]);
-          }
-        } catch {
+          setQuizQuestions(allQuestions);
+        } else {
           setQuizQuestions([]);
         }
-      } catch (error) {
-        console.error("❌ fetchContent failed", error);
+      } catch {
+        setQuizQuestions([]);
       }
-    };
+    } catch (error) {
+      console.error("❌ fetchContent failed", error);
+    }
+  };
 
-    fetchContent();
-  }, [selectedPlaylist, targetVideoId, channelInfo]);
+  fetchContent();
+}, [selectedPlaylist, targetVideoId, channelInfo]);
+
 
   // Cleanup intervals
   useEffect(() => {
@@ -984,8 +1036,10 @@ export default function VideoPlayer() {
             onStateChange={handleStateChange}
             onWatchLater={handleWatchLater}
             isSaved={savedVideoIds.has(
-              selectedVideo?.snippet?.resourceId?.videoId
-            )}
+  selectedVideo?.snippet?.resourceId?.videoId ||
+  selectedVideo?.id
+)}
+
             isSaving={isSaving}
           />
           <PlayListSidebar

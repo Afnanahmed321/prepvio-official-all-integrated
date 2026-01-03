@@ -54,6 +54,43 @@ router.get("/id/:id", async (req, res) => {
   }
 });
 
+router.get("/single/:channelId/:courseId", async (req, res) => {
+  try {
+    const { channelId, courseId } = req.params;
+
+    const playlist = await Playlist.findOne({
+      channelId,
+      courseId,
+      type: "video",
+    }).populate("channelId", "name imageUrl")
+      .populate("courseId", "name description");
+
+    if (!playlist) {
+      return res.status(404).json({ success: false, error: "Single video not found" });
+    }
+
+    // Extract videoId from YouTube link
+    const url = new URL(playlist.link);
+    const videoId = url.searchParams.get("v");
+
+    if (!videoId) {
+      return res.status(400).json({ success: false, error: "Invalid YouTube video link" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        type: "video",
+        videoId,
+        title: playlist.courseId.name,
+        channelName: playlist.channelId.name,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET a playlist by channel and course ID
 router.get("/:channelId/:courseId", async (req, res) => {
   try {

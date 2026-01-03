@@ -293,55 +293,111 @@ router.post("/update-course-total", verifyToken, async (req, res) => {
    DASHBOARD
 ========================================================= */
 router.get("/dashboard", verifyToken, async (req, res) => {
-  const user = await User.findById(req.userId).lean();
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const user = await User.findById(req.userId).lean();
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  const courses = (user.courseProgress || []).map((c) => {
-    const completed =
-      c.totalSeconds > 0 && c.watchedSeconds >= c.totalSeconds * 0.9;
+    /* ======================================================
+       COURSES + COMPLETION
+    ====================================================== */
+    const courses = (user.courseProgress || []).map((c) => {
+      const completed =
+        c.totalSeconds > 0 && c.watchedSeconds >= c.totalSeconds * 0.9;
 
-    return {
-      courseId: c.courseId,
-      courseTitle: c.courseTitle,
-      channelId: c.channelId,
-      channelName: c.channelName,
-      channelThumbnail: c.channelThumbnail,
-      totalSeconds: c.totalSeconds,
-      watchedSeconds: c.watchedSeconds,
-      completed,
+      return {
+        courseId: c.courseId,
+        courseTitle: c.courseTitle,
+        channelId: c.channelId,
+        channelName: c.channelName,
+        channelThumbnail: c.channelThumbnail,
+        totalSeconds: c.totalSeconds,
+        watchedSeconds: c.watchedSeconds,
+        completed,
+        lastAccessed: c.lastAccessed,
+      };
+    });
+
+    const totalCourses = courses.length;
+    const completedCourses = courses.filter(c => c.completed).length;
+    const inProgressCourses = totalCourses - completedCourses;
+
+    const totalWatchedSeconds = courses.reduce(
+      (sum, c) => sum + (c.watchedSeconds || 0),
+      0
+    );
+
+    /* ======================================================
+       RESUME COURSE
+    ====================================================== */
+    const resumeCourse = courses
+      .filter(c => !c.completed && c.watchedSeconds > 0)
+      .sort((a, b) => new Date(b.lastAccessed) - new Date(a.lastAccessed))[0];
+
+    /* ======================================================
+       WEEKLY LEARNING ACTIVITY (ROLLING 4 WEEKS)
+    ====================================================== */
+
+    const getWeekBucket = (date) => {
+      const now = new Date();
+      const diffDays = Math.floor(
+        (now.getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays <= 7) return "This Week";
+      if (diffDays <= 14) return "Last Week";
+      if (diffDays <= 21) return "2 Weeks Ago";
+      return "3 Weeks Ago";
     };
-  });
 
-  const totalCourses = courses.length;
-  const completedCourses = courses.filter(c => c.completed).length;
-  const inProgressCourses = totalCourses - completedCourses;
+    const weeklyActivity = {
+      "3 Weeks Ago": 0,
+      "2 Weeks Ago": 0,
+      "Last Week": 0,
+      "This Week": 0,
+    };
 
-  const totalWatchedSeconds = courses.reduce(
-    (sum, c) => sum + (c.watchedSeconds || 0),
-    0
-  );
+    (user.courseProgress || []).forEach(course => {
+      if (course.lastAccessed && course.watchedSeconds > 0) {
+        const bucket = getWeekBucket(course.lastAccessed);
+        weeklyActivity[bucket] += course.watchedSeconds;
+      }
+    });
 
-  const resumeCourse = courses
-    .filter(c => !c.completed && c.watchedSeconds > 0)
-    .sort((a, b) => b.watchedSeconds - a.watchedSeconds)[0];
+    // convert seconds → hours (1 decimal)
+    Object.keys(weeklyActivity).forEach(key => {
+      weeklyActivity[key] =
+        Math.round((weeklyActivity[key] / 3600) * 10) / 10;
+    });
 
-  res.json({
-    stats: {
-      totalCourses,
-      completedCourses,
-      inProgressCourses,
-      totalWatchedHours: Math.floor(totalWatchedSeconds / 3600),
-    },
-    courses,
-    resume: resumeCourse
-      ? {
-          courseId: resumeCourse.courseId,
-          channelId: resumeCourse.channelId,
-          videoId: null,
-        }
-      : null,
-  });
+    /* ======================================================
+       RESPONSE
+    ====================================================== */
+    res.json({
+      stats: {
+        totalCourses,
+        completedCourses,
+        inProgressCourses,
+        totalWatchedHours: Math.floor(totalWatchedSeconds / 3600),
+      },
+      courses,
+      resume: resumeCourse
+        ? {
+            courseId: resumeCourse.courseId,
+            channelId: resumeCourse.channelId,
+            videoId: null,
+          }
+        : null,
+      weeklyActivity,
+    });
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.status(500).json({ message: "Failed to load dashboard" });
+  }
 });
+
+
 
 
 

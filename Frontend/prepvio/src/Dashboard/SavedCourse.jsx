@@ -75,12 +75,22 @@ const SavedCoursesPage = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const filteredCourses = savedCourses.filter(course => {
-    const searchMatch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.channelName.toLowerCase().includes(searchQuery.toLowerCase());
-    const categoryMatch = !selectedCategory || course.category === selectedCategory;
-    return searchMatch && categoryMatch;
-  });
+ const filteredCourses = savedCourses.filter(course => {
+  const title = course.title || "";
+  const channelName = course.channelName || "";
+
+  const search = searchQuery.toLowerCase();
+
+  const searchMatch =
+    title.toLowerCase().includes(search) ||
+    channelName.toLowerCase().includes(search);
+
+  const categoryMatch =
+    !selectedCategory || course.category === selectedCategory;
+
+  return searchMatch && categoryMatch;
+});
+
 
   const categories = ['All', ...new Set(savedCourses.map(course => course.category).filter(Boolean))];
 
@@ -170,7 +180,7 @@ const SavedCoursesPage = () => {
               className="flex flex-col items-center justify-center h-96 text-gray-500 bg-white rounded-[2.5rem] border border-gray-100"
             >
               <Search className="w-16 h-16 mb-4 text-gray-300" />
-              <p className="text-lg font-bold text-gray-900">No courses found</p>
+              <p className="text-lg font-bold text-gray-900">No results for "{searchQuery}"</p>
               <p className="text-sm">Try adjusting your search or filters.</p>
             </motion.div>
           ) : (

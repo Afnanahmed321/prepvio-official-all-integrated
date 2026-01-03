@@ -77,11 +77,8 @@ const motivationalQuotes = [
   "Today is your day! 🔥"
 ];
 
-const achievements = [
-  { title: "Speed Learner", icon: Zap, desc: "Completed 5 courses in a week!", type: "Technical" },
-  { title: "Consistent", icon: Target, desc: "15 day learning streak!", type: "Behavioral" },
-  { title: "Top Performer", icon: Award, desc: "Scored 95%+ in 3 courses", type: "Academic" }
-];
+
+
 
 const serviceConfigs = [
   { key: 'checkYourAbility', name: 'Check Your Ability', icon: MonitorCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
@@ -90,18 +87,8 @@ const serviceConfigs = [
   { key: 'resumeAnalyzer', name: 'Resume Analyzer', icon: FileText, color: 'text-red-600', bg: 'bg-red-50' },
 ];
 
-const chartData = {
-  labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-  datasets: [
-    {
-      label: "Learning Hours",
-      data: [12, 19, 15, 25],
-      backgroundColor: "#D4F478",
-      borderRadius: 12,
-      borderSkipped: false,
-    },
-  ],
-};
+
+
 
 const chartOptions = {
   responsive: true,
@@ -411,7 +398,52 @@ export default function DashboardPage() {
   totalWatchedHours: 0,
 };
 
+const weeklyActivity = dashboard?.weeklyActivity || {
+  "3 Weeks Ago": 0,
+  "2 Weeks Ago": 0,
+  "Last Week": 0,
+  "This Week": 0,
+};
+
+
+
+const chartData = {
+  labels: Object.keys(weeklyActivity),
+  datasets: [
+    {
+      label: "Learning Hours",
+      data: Object.values(weeklyActivity).map(v =>
+        Math.round(v * 10) / 10
+      ),
+      backgroundColor: "#D4F478",
+      borderRadius: 12,
+      borderSkipped: false,
+    },
+  ],
+};
+
+
 const courses = dashboard?.courses || [];
+
+const derivedAchievements = courses
+  .filter(course => course.watchedSeconds > 0)
+  .map(course => {
+    if (course.completed) {
+      return {
+        title: `Completed ${course.courseTitle}`,
+        desc: `by ${course.channelName}`,
+        icon: CheckCircle,
+      };
+    }
+
+    return {
+      title: `Started ${course.courseTitle}`,
+      desc: `by ${course.channelName}`,
+      icon: BookOpen,
+    };
+  })
+  .slice(0, 3);
+
 
   const displayName = user?.name?.split(' ')[0] || 'User';
   const userAvatar = user?.profilePic || `${ASSETS.avatarPlaceholder}${encodeURIComponent(user?.name || 'User')}`;
@@ -564,20 +596,30 @@ const courses = dashboard?.courses || [];
                       <h3 className="font-bold text-lg">Achievements</h3>
                    </div>
                    <div className="space-y-4">
-                      {achievements.map((item, idx) => {
-                        const Icon = item.icon;
-                        return (
-                          <div key={idx} className="flex items-start gap-3 p-3 bg-white/10 rounded-xl border border-white/5 backdrop-blur-sm">
-                             <div className="mt-1 w-8 h-8 bg-[#D4F478] rounded-lg flex items-center justify-center text-black shrink-0">
-                               <Icon size={16} />
-                             </div>
-                             <div>
-                               <h4 className="font-bold text-sm">{item.title}</h4>
-                               <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
-                             </div>
-                          </div>
-                        )
-                      })}
+                      {derivedAchievements.length > 0 ? (
+  derivedAchievements.map((item, idx) => {
+    const Icon = item.icon;
+    return (
+      <div
+        key={idx}
+        className="flex items-start gap-3 p-3 bg-white/10 rounded-xl border border-white/5 backdrop-blur-sm"
+      >
+        <div className="mt-1 w-8 h-8 bg-[#D4F478] rounded-lg flex items-center justify-center text-black shrink-0">
+          <Icon size={16} />
+        </div>
+        <div>
+          <h4 className="font-bold text-sm">{item.title}</h4>
+          <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
+        </div>
+      </div>
+    );
+  })
+) : (
+  <p className="text-sm text-gray-400">
+    Start a course to unlock achievements 🚀
+  </p>
+)}
+
                    </div>
                    <button className="w-full mt-6 py-3 bg-[#D4F478] text-black font-bold rounded-xl text-sm hover:bg-white transition-colors">
                      View All Trophies

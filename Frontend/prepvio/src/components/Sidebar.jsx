@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+
 import {
   LayoutDashboard,
   Settings,
@@ -157,6 +159,7 @@ const DropdownMenu = ({ title, icon: Icon, children, collapsed, setSidebarCollap
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [learningCount, setLearningCount] = useState(0);
 
   // Check screen size to handle responsive behavior
   useEffect(() => {
@@ -170,6 +173,23 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/users/dashboard",
+        { withCredentials: true }
+      );
+
+      setLearningCount(res.data.stats.inProgressCourses);
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  };
+
+  fetchDashboard();
+}, []);
 
   // Animation variants: Different logic for Mobile vs Desktop
   const sidebarVariants = {
@@ -249,7 +269,14 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           <SidebarLink icon={LayoutDashboard} label="Dashboard" to="/dashboard" collapsed={isCollapsed} />
           <SidebarLink icon={Settings} label="Account" to="/dashboard/setting" collapsed={isCollapsed} />
           <SidebarLink icon={Bell} label="Notifications" to="/dashboard/notifications" badge="3" collapsed={isCollapsed} />
-          <SidebarLink icon={BookOpen} label="Learning" to="/dashboard/learning" badge="5" collapsed={isCollapsed} />
+          <SidebarLink
+  icon={BookOpen}
+  label="Learning"
+  to="/dashboard/learning"
+  badge={learningCount > 0 ? learningCount : null}
+  collapsed={isCollapsed}
+/>
+
 
           <DropdownMenu title="Saved Courses" icon={Bookmark} collapsed={isCollapsed} setSidebarCollapsed={setIsCollapsed}>
             <SidebarLink icon={Bookmark} label="My Courses" to="/dashboard/saved-courses" collapsed={isCollapsed} />
