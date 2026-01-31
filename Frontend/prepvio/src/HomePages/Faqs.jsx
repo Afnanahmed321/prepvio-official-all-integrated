@@ -5,33 +5,33 @@ const FAQSection = () => {
   const faqData = [
     { 
       id: 1, 
-      q: "How does AI coach me?", 
-      a: "Our AI analyzes over 50+ signals including tone, pacing, confidence, and keyword relevance to generate real-time performance insights." 
+      q: "How does the AI analyze my performance?", 
+      a: "Our AI tracks signals which includs speech clarity, body language, eye contact, nervous cues, and answer quality to give you comprehensive feedback on both what you say and how you say it." 
     },
     { 
       id: 2, 
-      q: "Company-specific interview prep?", 
-      a: "Practice with curated question banks from FAANG, Big-4, Fortune-500, and high-growth startups, updated weekly." 
+      q: "Can I practice for specific companies?", 
+      a: "Yes! Select your target company and role to get tailored questions that match their interview style, culture, and typical assessment areas." 
     },
     { 
       id: 3, 
       q: "Is my interview data private?", 
-      a: "Yes. All recordings are end-to-end encrypted and never shared. Privacy and security are built into our core architecture." 
+      a: "Yes. All recordings are and never shared. You control your data view, download, or delete anytime. We never share your practice sessions with third parties."
     },
     { 
       id: 4, 
       q: "Do you support technical interviews?", 
-      a: "We support live coding for DSA, system design whiteboarding, and AI-driven feedback on problem-solving approach." 
+      a: "We support live coding for DSA and AI-driven feedback on problem-solving approach." 
     },
     { 
       id: 5, 
-      q: "Can I cancel anytime?", 
-      a: "Absolutely. Subscriptions are flexible with no lock-in. Cancel anytime, plus enjoy a 7-day trial for just $1." 
+      q: "Do I need any special equipment?", 
+      a: "Just a webcam and microphone. Our platform works on any modern browser, no downloads or installations required." 
     },
     { 
       id: 6, 
-      q: "Bulk access for teams?", 
-      a: "Enterprise dashboards are available for universities, bootcamps, and hiring teams to track progress at scale." 
+      q: "Do you offer a free trial?", 
+      a: "We offer one free interview, so you can experience the full platform before committing to a subscription." 
     },
   ];
 

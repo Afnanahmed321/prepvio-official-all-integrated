@@ -1,6 +1,6 @@
-import React, { useState } from "react"; // Added useState
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Twitter, Instagram, Linkedin, MapPin, Mail, Phone } from "lucide-react";
+import { Twitter, Instagram, Linkedin, MapPin, Mail, Phone, ArrowRight } from "lucide-react";
 import TermsModal from "../components/TermsModal.jsx";
 
 /* ================================
@@ -34,27 +34,40 @@ function Footer() {
      ================================ */
   if (isHomePage) {
     return (
-      <footer className="mt-10 bg-white border-t border-gray-100 pt-20 pb-10 rounded-t-[3.5rem] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-8 md:px-12">
+      <footer className="mt-10 bg-gradient-to-b from-white to-gray-50 border-t border-gray-100 pt-20 pb-10 rounded-t-[3.5rem] relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D4F478]/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-50 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
           {/* TOP GRID */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+            
             {/* BRANDING SECTION */}
-            <div className="md:col-span-4">
+            <div className="md:col-span-5">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-black/10">
-                  <img src="/newuilogo1.png" alt="Icon" className="w-full h-full object-cover" />
+                <div className="w-11 h-11 bg-black rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/10">
+                  <img src="/newuilogo1.png" alt="PrepVio Icon" className="w-full h-full object-cover" />
                 </div>
-                <div className="hidden md:block">
-                  <img src="/prepvio (1).png" alt="PrepVio" className="h-9 w-auto object-contain" />
+                <div>
+                  <img src="/prepvio (1).png" alt="PrepVio" className="h-8 w-auto object-contain" />
                 </div>
               </div>
-              <p className="text-gray-500 leading-relaxed mb-6 max-w-sm">
-                Empowering interview readiness with AI-driven insights and real-world practice.
+              <p className="text-gray-600 leading-relaxed mb-8 max-w-sm font-medium">
+                Empowering interview readiness with AI-driven insights and real-world practice. Transform nervous energy into executive presence.
               </p>
+              
               {/* SOCIAL LINKS */}
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 {SOCIAL_LINKS.map(({ name, href, Icon }) => (
-                  <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={name} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-black hover:text-white transition-colors">
+                  <a 
+                    key={name} 
+                    href={href} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label={name} 
+                    className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-black hover:text-white transition-all duration-300 hover:scale-110 shadow-sm"
+                  >
                     <Icon className="w-5 h-5" />
                   </a>
                 ))}
@@ -63,45 +76,113 @@ function Footer() {
 
             {/* QUICK LINKS */}
             <div className="md:col-span-2">
-              <h4 className="font-bold text-gray-900 mb-6">Quick Links</h4>
-              <ul className="space-y-4 text-gray-500 text-sm">
-                <li className="hover:text-black cursor-pointer">Our Team</li>
-                <li className="hover:text-black cursor-pointer">Feedback</li>
-                <li onClick={() => setOpenTerms(true)} className="hover:text-black cursor-pointer">Terms & Conditions</li>
+              <h4 className="font-black text-gray-900 mb-6 text-sm uppercase tracking-wider">Quick Links</h4>
+              <ul className="space-y-3.5">
+                <li>
+                  <a href="#about" className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    Our Team
+                  </a>
+                </li>
+                <li>
+                  <a href="#feedback" className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    Feedback
+                  </a>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setOpenTerms(true)} 
+                    className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group"
+                  >
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    Terms & Conditions
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* SUPPORT */}
+            <div className="md:col-span-2">
+              <h4 className="font-black text-gray-900 mb-6 text-sm uppercase tracking-wider">Support</h4>
+              <ul className="space-y-3.5">
+                <li>
+                  <a href="#faqs" className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    FAQs
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group">
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setOpenTerms(true)} 
+                    className="text-gray-600 hover:text-black transition-colors font-medium text-sm flex items-center gap-2 group"
+                  >
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -ml-6 group-hover:ml-0 transition-all" />
+                    Privacy Policy
+                  </button>
+                </li>
               </ul>
             </div>
 
             {/* CONTACT */}
-            <div className="md:col-span-2">
-              <h4 className="font-bold text-gray-900 mb-6">Contact</h4>
-              <ul className="space-y-4 text-gray-500 text-sm">
-                <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gray-400" /> <span>[Your Address]</span></li>
-                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400" /> <span>prepvio.ai@gmail.com</span></li>
-                <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-gray-400" /> <span>+91 7433877151</span></li>
+            <div className="md:col-span-3">
+              <h4 className="font-black text-gray-900 mb-6 text-sm uppercase tracking-wider">Contact Us</h4>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3 text-gray-600 text-sm font-medium group hover:text-black transition-colors">
+                  <MapPin className="w-5 h-5 text-gray-400 group-hover:text-black transition-colors flex-shrink-0 mt-0.5" />
+                  <span>Bengaluru, Karnataka, India</span>
+                </li>
+                <li className="flex items-start gap-3 text-gray-600 text-sm font-medium group hover:text-black transition-colors">
+                  <Mail className="w-5 h-5 text-gray-400 group-hover:text-black transition-colors flex-shrink-0 mt-0.5" />
+                  <a href="mailto:prepvio.ai@gmail.com" className="hover:underline">
+                    prepvio.ai@gmail.com
+                  </a>
+                </li>
+                <li className="flex items-start gap-3 text-gray-600 text-sm font-medium group hover:text-black transition-colors">
+                  <Phone className="w-5 h-5 text-gray-400 group-hover:text-black transition-colors flex-shrink-0 mt-0.5" />
+                  <a href="tel:+917433877151" className="hover:underline">
+                    +91 7433877151
+                  </a>
+                </li>
               </ul>
-            </div>
-
-            {/* CTA */}
-            <div className="md:col-span-4">
-              <h4 className="font-bold text-gray-900 mb-6">Start Training</h4>
-              <div className="flex gap-2">
-                <input type="email" placeholder="Enter your email" className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-black/5" />
-                <button className="bg-black text-white px-5 py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">Go</button>
-              </div>
             </div>
           </div>
 
           {/* BOTTOM BAR */}
-          <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-            <p>© 2025 PrepVio. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <span onClick={() => setOpenTerms(true)} className="hover:text-black cursor-pointer">Privacy Policy</span>
-              <span onClick={() => setOpenTerms(true)} className="hover:text-black cursor-pointer">Terms of Service</span>
+          <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-500 font-medium">
+              © 2025 PrepVio. All rights reserved.
+            </p>
+            <div className="flex flex-wrap gap-6 text-sm">
+              <button 
+                onClick={() => setOpenTerms(true)} 
+                className="text-gray-500 hover:text-black transition-colors font-medium"
+              >
+                Privacy Policy
+              </button>
+              <button 
+                onClick={() => setOpenTerms(true)} 
+                className="text-gray-500 hover:text-black transition-colors font-medium"
+              >
+                Terms of Service
+              </button>
+              <a 
+                href="#" 
+                className="text-gray-500 hover:text-black transition-colors font-medium"
+              >
+                Cookie Policy
+              </a>
             </div>
           </div>
         </div>
 
-        {/* Modal call - Content is now in TermsModal.jsx */}
+        {/* Modal */}
         <TermsModal isOpen={openTerms} onClose={() => setOpenTerms(false)} />
       </footer>
     );
@@ -111,115 +192,125 @@ function Footer() {
       OTHER PAGES → DARK FOOTER
      ================================ */
   return (
-    <footer className="w-full bg-black border-t border-white/10 py-8">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* BRAND */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-            <img src="/newuilogo4.png" alt="Icon" className="w-full h-full object-cover" />
+    <footer className="w-full bg-gradient-to-b from-black to-gray-900 border-t border-white/10 py-12">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Main Content */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-8">
+          
+          {/* BRAND */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
+                <img src="/newuilogo4.png" alt="PrepVio Icon" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <img 
+                  src="/prepvio (1).png" 
+                  alt="PrepVio" 
+                  className="h-7 w-auto object-contain brightness-0 invert" 
+                />
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm font-medium max-w-sm leading-relaxed">
+              Master your interview skills with AI-powered practice and feedback.
+            </p>
           </div>
-          <div className="hidden md:block">
-            <img src="/prepvio (1).png" alt="PrepVio" className="h-7 w-auto object-contain brightness-0 invert" />
+
+          {/* QUICK LINKS */}
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+            <div>
+              <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Company</h5>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#about" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setOpenTerms(true)} 
+                    className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Terms
+                  </button>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Contact</h5>
+              <ul className="space-y-2">
+                <li>
+                  <a 
+                    href="mailto:prepvio.ai@gmail.com" 
+                    className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Email Us
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="tel:+917433877151" 
+                    className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Call Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* SOCIAL LINKS */}
+          <div>
+            <h5 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Follow Us</h5>
+            <div className="flex gap-3">
+              {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                <a 
+                  key={name} 
+                  href={href} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  aria-label={name} 
+                  className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white/60 hover:bg-white hover:text-black transition-all duration-300 hover:scale-110"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
-        <p className="text-xs text-white/50 text-center">© 2025 PrepVio. All rights reserved.</p>
-
-        {/* SOCIAL LINKS */}
-        <div className="flex gap-4 text-white/60">
-          {SOCIAL_LINKS.map(({ name, href, Icon }) => (
-            <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={name} className="hover:text-white transition-colors">
-              <Icon className="w-4 h-4" />
-            </a>
-          ))}
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-gray-500 font-medium">
+            © 2025 PrepVio. All rights reserved.
+          </p>
+          <div className="flex gap-6 text-xs">
+            <button 
+              onClick={() => setOpenTerms(true)} 
+              className="text-gray-500 hover:text-white transition-colors font-medium"
+            >
+              Privacy Policy
+            </button>
+            <button 
+              onClick={() => setOpenTerms(true)} 
+              className="text-gray-500 hover:text-white transition-colors font-medium"
+            >
+              Terms of Service
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Adding Modal here too so it works on other pages */}
+      {/* Modal */}
       <TermsModal isOpen={openTerms} onClose={() => setOpenTerms(false)} />
     </footer>
   );
 }
 
 export default Footer;
-
-
-
-
-
-// import React from "react";
-// import { useLocation } from "react-router-dom";
-
-// function Footer() {
-//   const location = useLocation();
-//   const isHomePage = location.pathname === "/";
-
-//   if (isHomePage) {
-//     // 👉 Your BIG FOOTER (the code you pasted)
-//     return (
-//       <div className='w-full bg-[#312d2d] text-white md:content-center md:h-110 xl:block'>
-//         <div className='block md:flex justify-between px-6 lg:px-18 xl:upper xl:flex xl:px-30 xl:gap-56 xl:py-12'>
-//           <div className='Logo content-center'>
-//             <div className='content-center py-4 text-center'>
-//               <h1 className='text-3xl font-extrabold sm:text-4xl'>PrepVio</h1>
-//               <p>v 1.0.0</p>
-//             </div>
-//             <div className='px-8 md:hidden'>
-//               <hr />
-//             </div>
-//           </div>
-
-//           <div className='Contact'>
-//             <div className='text-center py-4 md:content-center md:text-left'>
-//               <h1 className='mb-3 text-2xl font-semibold'>Contact Us</h1>
-//               <div className='text-lg'>
-//                 <p>Address: [Your Address]</p>
-//                 <p>Email: support@[yourwebsite].com</p>
-//                 <p>Phone: [+XX-XXXXXXXXXX]</p>
-//               </div>
-//             </div>
-//             <div className='px-8 md:hidden'>
-//               <hr />
-//             </div>
-//           </div>
-
-//           <div className='other-links'>
-//             <div className='text-center py-4 md:content-center md:text-left'>
-//               <h1 className='mb-3 text-2xl font-semibold'>Other Links</h1>
-//               <div className='text-lg'>
-//                 <p>Our Team</p>
-//                 <p>Feedback</p>
-//                 <p>Terms & Conditions</p>
-//               </div>
-//             </div>
-//             <div className='px-8 md:hidden'>
-//               <hr />
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className='hidden md:block md:px-8 lg:px-17 xl:block xl:px-30'>
-//           <hr />
-//         </div>
-
-//         <div className='text-white mt-6 text-center'>
-//           <div>
-//             <h1 className='text-2xl'>Follow Us</h1>
-//             {/* 👉 keep your social icons here (unchanged) */}
-//           </div>
-//           <h2 className='text-xl mt-2'>Copyright. All rights Reserved</h2>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // 👉 SMALL FOOTER for all other pages
-//   return (
-//     <div className='w-full bg-[#312d2d] text-white py-4 text-center'>
-//       <h1 className='text-lg font-bold'>PrepVio</h1>
-//       <p className='text-sm'>© 2025 PrepVio. All Rights Reserved.</p>
-//     </div>
-//   );
-// }
-
-// export default Footer;

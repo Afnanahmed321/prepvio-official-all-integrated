@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; 
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import AuthModal from "../components/AuthModal"; // Add this line
+import { useNavigate } from "react-router-dom";
 
 import {
   ArrowRight,
@@ -41,6 +43,8 @@ const ASSETS = {
   babaAi: "/BABA AI.png",
   siraAi: "/SIRA.png",
 };
+
+
 
 /**
  * ANIMATION VARIANTS
@@ -87,39 +91,81 @@ const cardVariants = {
  * SUB-COMPONENTS
  */
 
-const HeroTextSection = () => (
-  <motion.div variants={itemSideVariants("left")} className="flex flex-col justify-center h-full relative z-30">
-    <motion.div variants={floatVariants} animate="animate" className="absolute -top-16 -left-12 w-32 h-32 bg-purple-200/40 rounded-full blur-3xl -z-10 pointer-events-none" />
+// ✅ FIXED HeroTextSection with "Resume Practice" logic
+const HeroTextSection = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuthStore();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [modalType, setModalType] = useState('login');
 
-    <div className="relative">
-      <h1 className="text-6xl md:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.9] text-gray-900 mb-6 drop-shadow-sm">
-        Master <br />
-        <span className="text-4xl md:text-5xl xl:text-6xl font-medium text-gray-400 block mt-2 ml-1">
-          Your Interview
-        </span>
-      </h1>
-      <motion.div initial={{ width: 0 }} animate={{ width: 100 }} transition={{ delay: 1, duration: 1 }} className="h-1.5 bg-[#D4F478] mt-2 rounded-full mb-6 ml-2" />
-    </div>
+  // ✅ Check if user has used any credits
+  const hasStartedInterviews = user?.subscription?.interviewsUsed > 0;
+  const buttonText = hasStartedInterviews ? "Resume Practice" : "Start Practice";
 
-    <p className="text-gray-500 mb-10 max-w-xl text-lg leading-relaxed ml-1 font-medium">
-      AI-powered simulations that transform nervous energy into executive presence before the stakes are real.
-    </p>
+  const handleStartPractice = () => {
+    if (!isAuthenticated) {
+      setModalType('login');
+      setShowAuthModal(true);
+      return;
+    }
 
-    <div className="flex items-center gap-4 ml-1 relative z-40">
-      <Link to="/signup">
-        <motion.button whileHover="hover" whileTap="tap" className="flex items-center gap-0 group cursor-pointer">
-            <span className="bg-[#1A1A1A] text-white px-8 py-4 rounded-l-full font-bold text-lg shadow-xl shadow-gray-300/50 z-10 relative">
-            Start Practice
+    if (!user?.isVerified) {
+      setModalType('verify');
+      setShowAuthModal(true);
+      return;
+    }
+
+    // Navigate to interview page if authenticated and verified
+    navigate('/services/check-your-ability/interview');
+  };
+
+  return (
+    <>
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        type={modalType}
+      />
+      
+      <motion.div variants={itemSideVariants("left")} className="flex flex-col justify-center h-full relative z-30">
+        <motion.div variants={floatVariants} animate="animate" className="absolute -top-16 -left-12 w-32 h-32 bg-purple-200/40 rounded-full blur-3xl -z-10 pointer-events-none" />
+
+        <div className="relative">
+          <h1 className="text-6xl md:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.9] text-gray-900 mb-6 drop-shadow-sm">
+            Master <br />
+            <span className="text-4xl md:text-5xl xl:text-6xl font-medium text-gray-400 block mt-2 ml-1">
+              Your Interview
             </span>
-            <motion.span className="w-14 h-[3.75rem] flex items-center justify-center rounded-r-full bg-[#D4F478] border-l-2 border-[#1A1A1A] group-hover:bg-[#cbf060] transition-colors origin-left"
-            variants={{ hover: { x: 5 }, tap: { x: 0 } }}>
-            <ArrowRight className="w-6 h-6 text-black group-hover:rotate-[-45deg] transition-transform duration-300" />
+          </h1>
+          <motion.div initial={{ width: 0 }} animate={{ width: 100 }} transition={{ delay: 1, duration: 1 }} className="h-1.5 bg-[#D4F478] mt-2 rounded-full mb-6 ml-2" />
+        </div>
+
+        <p className="text-gray-500 mb-10 max-w-xl text-lg leading-relaxed ml-1 font-medium">
+          AI-powered simulations that transform nervous energy into executive presence before the stakes are real.
+        </p>
+
+        <div className="flex items-center gap-4 ml-1 relative z-40">
+          <motion.button 
+            onClick={handleStartPractice}
+            whileHover="hover" 
+            whileTap="tap" 
+            className="flex items-center gap-0 group cursor-pointer"
+          >
+            <span className="bg-[#1A1A1A] text-white px-8 py-4 rounded-l-full font-bold text-lg shadow-xl shadow-gray-300/50 z-10 relative">
+              {buttonText} {/* ✅ Dynamic button text */}
+            </span>
+            <motion.span 
+              className="w-14 h-[3.75rem] flex items-center justify-center rounded-r-full bg-[#D4F478] border-l-2 border-[#1A1A1A] group-hover:bg-[#cbf060] transition-colors origin-left"
+              variants={{ hover: { x: 5 }, tap: { x: 0 } }}
+            >
+              <ArrowRight className="w-6 h-6 text-black group-hover:rotate-[-45deg] transition-transform duration-300" />
             </motion.span>
-        </motion.button>
-      </Link>
-    </div>
-  </motion.div>
-);
+          </motion.button>
+        </div>
+      </motion.div>
+    </>
+  );
+};
 
 const AgentCard = () => (
   <motion.div variants={itemUpVariants} whileHover={hoverCardEffect} className="bg-[#2A2A2A] rounded-[2.5rem] p-6 text-white flex items-center gap-5 relative overflow-hidden shadow-2xl shadow-gray-900/10 cursor-pointer group z-20">
@@ -388,16 +434,19 @@ const plans = [
   }
 ];
 
-// ✅ PRICING SECTION WITH EXACT PAYMENT.JSX DESIGN
 const PricingSection = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(null);
-  const { refreshUser } = useAuthStore();
+  const [showAuthModal, setShowAuthModal] = useState(false); // ✅ NEW
+  const [modalType, setModalType] = useState('login'); // ✅ NEW: 'login' or 'verify'
+  const { refreshUser, isAuthenticated, user } = useAuthStore();
 
   // ✅ Fetch current subscription
   useEffect(() => {
     const fetchSubscription = async () => {
+      if (!isAuthenticated) return;
+      
       try {
         const res = await axios.get(
           "http://localhost:5000/api/payment/interview-status",
@@ -413,10 +462,22 @@ const PricingSection = () => {
     };
 
     fetchSubscription();
-  }, []);
+  }, [isAuthenticated]);
 
   // ✅ Razorpay Payment Handler
   const handlePaymentWithPlan = async (planId) => {
+    if (!isAuthenticated) {
+      setModalType('login'); // ✅ CHANGED
+      setShowAuthModal(true); // ✅ CHANGED
+      return;
+    }
+
+    if (!user?.isVerified) {
+      setModalType('verify'); // ✅ CHANGED
+      setShowAuthModal(true); // ✅ CHANGED
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
@@ -442,7 +503,6 @@ const PricingSection = () => {
             if (verifyRes.data.success) {
               await refreshUser();
               
-              // Refresh current plan
               const res = await axios.get(
                 "http://localhost:5000/api/payment/interview-status",
                 { withCredentials: true }
@@ -489,12 +549,30 @@ const PricingSection = () => {
   };
 
   const handlePlanSelect = (planId) => {
+    if (!isAuthenticated) {
+      setModalType('login'); // ✅ CHANGED
+      setShowAuthModal(true); // ✅ CHANGED
+      return;
+    }
+
+    if (!user?.isVerified) {
+      setModalType('verify'); // ✅ CHANGED
+      setShowAuthModal(true); // ✅ CHANGED
+      return;
+    }
+
     setSelectedPlan(planId);
     handlePaymentWithPlan(planId);
   };
   
 
   return (
+    <>
+    <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        type={modalType}
+      />
     <div className="max-w-[1600px] mx-auto px-6 ">
     
       <motion.div
@@ -504,8 +582,10 @@ const PricingSection = () => {
 >
   {/* Eyebrow */}
   <div className="text-center max-w-2xl mx-auto mb-10">
-  <h2 className="text-4xl md:text-5xl font-black text-gray-900 ">Simple Pricing</h2>
-  {/* <p className="text-gray-500 text-lg">No credit card required. Start with 3 free practice interviews.</p> */}
+  <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">Choose Your Plan</h2>
+  <p className="text-lg text-gray-500 font-medium leading-relaxed">
+            Get interview-ready in days, not weeks. Start now.
+          </p>
   </div>
   
 </motion.div>
@@ -618,8 +698,11 @@ const PricingSection = () => {
         })}
       </motion.div>
     </div>
+    </>
   );
 };
+
+
 
 // ✅ HERO COMPONENT
 const Hero = () => {

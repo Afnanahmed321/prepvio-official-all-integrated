@@ -11,30 +11,31 @@ import {
   ShieldCheck,
   Gift,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  LogIn
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // ✅ Updated Features Data with more aggressive, professional copy
 const features = [
   {
-    title: "Real-Time AI Avatar",
+    title: "Real-Time AI Interviewer with Emotion Detection",
     description:
-      "Engage with a high-fidelity digital twin that simulates real-world stress and body language cues, preparing you for the toughest panel rounds.",
+      "Face realistic interviews while AI tracks your responses and body language. Get flagged for nervousness, poor eye contact, or uncertainty with visual proof",
     icon: <Bot className="w-7 h-7" />,
     color: "bg-blue-100",
   },
   {
-    title: "Deep Speech Analysis",
+    title: "Deep Response Analysis",
     description:
-      "Our neural engine decodes your filler words, sentiment, and technical accuracy, giving you a 'Confidence Score' that mirrors HR metrics.",
+      "Get instant feedback on every answer: clarity, structure, technical accuracy, and communication style. See exactly what worked and what didn't - question by question.",
     icon: <BarChart3 className="w-7 h-7" />,
     color: "bg-[#D4F478]", // Using the signature lime-green
   },
   {
-    title: "Automated Dossier",
+    title: "Detailed Performance Report",
     description:
-      "Receive an exhaustive performance breakdown with timestamped suggestions and transcript corrections within seconds of finishing.",
+      "Receive a comprehensive breakdown with timestamped feedback, improvement suggestions, and talking points to refine. Track your progress across multiple practice sessions.",
     icon: <FileText className="w-7 h-7" />,
     color: "bg-purple-100",
   },
@@ -57,10 +58,8 @@ const FeatureCard = ({ icon, title, description, color }) => (
 
 const AboutUs = () => {
   const navigate = useNavigate();
-
-  const { user } = useAuthStore();
-const hasInterviewCredits = user?.subscription?.interviewsRemaining > 0;
-
+  const { user, isAuthenticated } = useAuthStore(); // ✅ Added isAuthenticated
+  const hasInterviewCredits = user?.subscription?.interviewsRemaining > 0;
 
   return (
     <div className="bg-[#F8F9FB] py-20 overflow-hidden">
@@ -81,7 +80,7 @@ const hasInterviewCredits = user?.subscription?.interviewsRemaining > 0;
             <span className="text-gray-400">Interview Process</span>
           </h2>
           <p className="text-lg text-gray-500 font-medium leading-relaxed">
-            Everything you need to turn nervous energy into executive presence. We don't just help you practice; we help you win.
+            Master every interview with AI that adapts to your role and company. <br/> We don't just help you practice, we help you win.
           </p>
         </div>
 
@@ -99,83 +98,141 @@ const hasInterviewCredits = user?.subscription?.interviewsRemaining > 0;
         </div>
 
         {/* ================= INTERVIEW CTA ================= */}
-{hasInterviewCredits ? (
-  /* ===== HAS CREDITS ===== */
-  <motion.div 
-    initial={{ opacity: 0 }}
-    whileInView={{ opacity: 1 }}
-    transition={{ delay: 0.4 }}
-    className="mt-20 p-10 bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#1A1A1A] rounded-[3.5rem] relative overflow-hidden shadow-2xl"
-  >
-    {/* Decorative elements */}
-    <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4F478]/10 rounded-full blur-[80px]" />
-    <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
+        {!isAuthenticated ? (
+          /* ===== NOT LOGGED IN ===== */
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-20 p-10 bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#1A1A1A] rounded-[3.5rem] relative overflow-hidden shadow-2xl"
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4F478]/10 rounded-full blur-[80px]" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
 
-    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-      {/* Left */}
-      <div className="flex items-start gap-6 flex-1">
-        <div className="w-20 h-20 bg-gradient-to-br from-[#D4F478] to-[#B8E356] rounded-2xl flex items-center justify-center shadow-xl">
-          <Gift className="w-10 h-10 text-black" />
-        </div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              {/* Left */}
+              <div className="flex items-start gap-6 flex-1">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D4F478] to-[#B8E356] rounded-2xl flex items-center justify-center shadow-xl">
+                  <Sparkles className="w-10 h-10 text-black" />
+                </div>
 
-        <div>
-          <h4 className="text-3xl font-black text-white mb-2">
-            You've Got Interview Credits 
-          </h4>
-          <p className="text-gray-400">
-            You have{" "}
-            <span className="text-[#D4F478] font-bold">
-              {user.subscription.interviewsRemaining}
-            </span>{" "}
-            interview credit(s) remaining.
-          </p>
-        </div>
-      </div>
+                <div>
+                  <h4 className="text-3xl font-black text-white mb-3">
+                    Get Your First Interview Free!
+                  </h4>
+                  <p className="text-gray-400 text-lg">
+                    Sign up now and start practicing with our AI-powered interview simulator.{" "}
+                    <span className="text-[#D4F478] font-bold">No credit card required.</span>
+                  </p>
+                </div>
+              </div>
 
-      {/* Right */}
-      <div className="flex flex-col gap-3">
-        <button
-          onClick={() => navigate("/services/check-your-ability/interview")}
-          className="bg-[#D4F478] text-black px-8 py-4 rounded-full font-black"
-        >
-          Start Interview
-        </button>
+              {/* Right */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="bg-[#D4F478] text-black px-8 py-4 rounded-full font-black hover:scale-[1.02] transition-transform flex items-center gap-2 justify-center shadow-lg shadow-[#D4F478]/20"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Login Now
+                </button>
 
-        <button
-          onClick={() => navigate("/dashboard/payroll")}
-          className="px-8 py-3 rounded-full border-2 border-white/20 text-white font-bold"
-        >
-          Get More Credits
-        </button>
-      </div>
-    </div>
-  </motion.div>
-) : (
-  /* ===== NO CREDITS ===== */
-  <motion.div
-    initial={{ opacity: 0 }}
-    whileInView={{ opacity: 1 }}
-    transition={{ delay: 0.4 }}
-    className="mt-20 p-10 bg-[#1A1A1A] rounded-[3.5rem] shadow-2xl text-center"
-  >
-    <h4 className="text-3xl font-black text-white mb-4">
-      You’ve used all interview credits
-    </h4>
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="px-8 py-3 rounded-full border-2 border-white/20 text-white font-bold hover:bg-white/10 transition-colors flex items-center gap-2 justify-center"
+                >
+                  Create Account
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : hasInterviewCredits ? (
+          /* ===== HAS CREDITS ===== */
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-20 p-10 bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#1A1A1A] rounded-[3.5rem] relative overflow-hidden shadow-2xl"
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4F478]/10 rounded-full blur-[80px]" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
 
-    <p className="text-gray-400 mb-6 max-w-xl mx-auto">
-      Upgrade your plan to unlock more AI-powered interviews with detailed feedback.
-    </p>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              {/* Left */}
+              <div className="flex items-start gap-6 flex-1">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D4F478] to-[#B8E356] rounded-2xl flex items-center justify-center shadow-xl">
+                  <Gift className="w-10 h-10 text-black" />
+                </div>
 
-    <button
-      onClick={() => navigate("/dashboard/payroll")}
-      className="bg-[#D4F478] text-black px-10 py-4 rounded-full font-black"
-    >
-      Upgrade & Get Credits
-    </button>
-  </motion.div>
-)}
+                <div>
+                  <h4 className="text-3xl font-black text-white mb-2">
+                    You've Got Interview Credits 
+                  </h4>
+                  <p className="text-gray-400 text-lg">
+                    You have{" "}
+                    <span className="text-[#D4F478] font-bold">
+                      {user.subscription.interviewsRemaining}
+                    </span>{" "}
+                    interview credit(s) remaining.
+                  </p>
+                </div>
+              </div>
 
+              {/* Right */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => navigate("/services/check-your-ability/interview")}
+                  className="bg-[#D4F478] text-black px-8 py-4 rounded-full font-black hover:scale-[1.02] transition-transform shadow-lg"
+                >
+                  Start Interview
+                </button>
 
+                <button
+                  onClick={() => navigate("/dashboard/payroll")}
+                  className="px-8 py-3 rounded-full border-2 border-white/20 text-white font-bold hover:bg-white/10 transition-colors"
+                >
+                  Get More Credits
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ===== NO CREDITS (but authenticated) ===== */
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-20 p-10 bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#1A1A1A] rounded-[3.5rem] relative overflow-hidden shadow-2xl"
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-[80px]" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px]" />
+
+            <div className="relative z-10 text-center">
+              {/* <div className="inline-flex w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl items-center justify-center shadow-xl mb-6">
+                <Target className="w-10 h-10 text-white" />
+              </div> */}
+
+              <h4 className="text-3xl font-black text-white mb-4">
+                You've Used All Interview Credits
+              </h4>
+
+              <p className="text-gray-400 mb-8 max-w-xl mx-auto text-lg">
+                Upgrade your plan to unlock more AI-powered interviews with detailed feedback.
+              </p>
+
+              <button
+                onClick={() => navigate("/dashboard/payroll")}
+                className="bg-[#D4F478] text-black px-10 py-4 rounded-full font-black hover:scale-[1.02] transition-transform shadow-lg shadow-[#D4F478]/20"
+              >
+                Upgrade & Get Credits
+              </button>
+            </div>
+          </motion.div>
+        )}
       </section>
     </div>
   );

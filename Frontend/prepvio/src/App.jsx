@@ -201,19 +201,19 @@ function App() {
 				<Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
 				{/* Services */}
-				<Route path="/services/learn--perform" element={<LearnAndPerform />} />
-				<Route path="/services/:serviceSlug/:courseId" element={<Channels />} />
-				<Route path="/:channelName/:channelId/:courseId" element={<VideoPlayer />} />
+				<Route path="/services/learn--perform" element={<ProtectedRoute><LearnAndPerform /></ProtectedRoute>} />
+				<Route path="/services/:serviceSlug/:courseId" element={<ProtectedRoute><Channels /></ProtectedRoute>} />
+				<Route path="/:channelName/:channelId/:courseId" element={<ProtectedRoute><VideoPlayer /></ProtectedRoute>} />
 
 				{/* Check Your Ability Flow */}
 				{/* Check Your Ability Flow */}
 <Route path="/services/check-your-ability">
   
   {/* ✅ Categories – always visible */}
-  <Route index element={<Categories />} />
+  <Route index element={<ProtectedRoute><Categories /></ProtectedRoute>} />
 
   {/* ✅ Aptitude – free & paid */}
-  <Route path="aptitude" element={<Aptitude />} />
+  <Route path="aptitude" element={<ProtectedRoute><Aptitude /></ProtectedRoute>} />
 
   {/* 🔒 Interview – PAID ONLY */}
   <Route element={<PaidOnlyRoute />}>
