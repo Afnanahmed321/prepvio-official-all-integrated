@@ -24,7 +24,7 @@ router.get("/plans", (req, res) => {
 =========================== */
 router.post("/create-order", verifyToken, async (req, res) => {
   try {
-    const { planId } = req.body;
+    const { planId, promoCode } = req.body;
     const userId = req.userId;
 
     if (!planId) {
@@ -36,18 +36,71 @@ router.post("/create-order", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "Invalid planId" });
     }
 
+    let finalAmount = plan.amount;
+    let originalAmount = plan.amount;
+    let discountAmount = 0;
+    let promoCodeData = null;
+
+    // If promo code is provided, validate and apply it
+    if (promoCode) {
+      const { PromoCode } = await import("../Models/PromoCode.js");
+
+      const promo = await PromoCode.findOne({
+        code: promoCode.toUpperCase()
+      });
+
+      if (!promo) {
+        return res.status(404).json({ message: "Invalid promo code" });
+      }
+
+      // Validate promo code
+      const validityCheck = promo.isValid();
+      if (!validityCheck.valid) {
+        return res.status(400).json({ message: validityCheck.reason });
+      }
+
+      // Check if user can use this promo code
+      const userCheck = promo.canUserUse(userId);
+      if (!userCheck.canUse) {
+        return res.status(400).json({ message: userCheck.reason });
+      }
+
+      // Check if applicable to plan
+      if (promo.applicablePlans.length > 0 &&
+        !promo.applicablePlans.includes(planId)) {
+        return res.status(400).json({
+          message: "This promo code is not applicable to the selected plan"
+        });
+      }
+
+      // Check minimum purchase amount
+      if (plan.amount < promo.minPurchaseAmount) {
+        return res.status(400).json({
+          message: `Minimum purchase amount of ₹${promo.minPurchaseAmount} required`
+        });
+      }
+
+      // Calculate discount
+      discountAmount = promo.calculateDiscount(plan.amount);
+      finalAmount = Math.max(0, plan.amount - discountAmount);
+      promoCodeData = promo.code;
+    }
+
     const order = await razorpay.orders.create({
-      amount: plan.amount * 100,
+      amount: finalAmount * 100,
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
-      notes: { planId, userId },
+      notes: { planId, userId, promoCode: promoCodeData || "none" },
     });
 
     await User.findByIdAndUpdate(userId, {
       $push: {
         payments: {
           productType: "subscription",
-          amount: plan.amount,
+          amount: finalAmount,
+          originalAmount: originalAmount,
+          discountAmount: discountAmount,
+          promoCode: promoCodeData,
           provider: "razorpay",
           orderId: order.id,
           status: "pending",
@@ -63,6 +116,10 @@ router.post("/create-order", verifyToken, async (req, res) => {
       currency: order.currency,
       planName: plan.name,
       interviews: plan.interviews,
+      originalAmount: originalAmount,
+      discountAmount: discountAmount,
+      finalAmount: finalAmount,
+      promoCode: promoCodeData,
     });
   } catch (err) {
     console.error(err);
@@ -150,24 +207,49 @@ router.post("/verify", verifyToken, async (req, res) => {
       }
     );
 
+    // If promo code was used, update promo code usage
+    if (payment.promoCode) {
+      const { PromoCode } = await import("../Models/PromoCode.js");
+
+      await PromoCode.findOneAndUpdate(
+        { code: payment.promoCode },
+        {
+          $inc: { usageCount: 1 },
+          $push: {
+            usedBy: {
+              userId: userId,
+              usedAt: new Date(),
+              orderId: razorpay_order_id,
+              discountApplied: payment.discountAmount,
+            },
+          },
+        }
+      );
+    }
+
     const updatedUser = await User.findById(userId);
 
     // In paymentRoute.js, inside the /verify route, replace the final res.json() with:
 
-res.json({
-  success: true,
-  subscription: updatedUser.subscription,
-  interviews: {
-    remaining: updatedUser.subscription.interviewsRemaining,
-    total: updatedUser.subscription.interviewsTotal,
-  },
-  plan: {
-    name: plan.name,
-    planId: payment.planId,
-    amount: plan.amount,
-    duration: plan.duration,
-  }
-});
+    res.json({
+      success: true,
+      subscription: updatedUser.subscription,
+      interviews: {
+        remaining: updatedUser.subscription.interviewsRemaining,
+        total: updatedUser.subscription.interviewsTotal,
+      },
+      plan: {
+        name: plan.name,
+        planId: payment.planId,
+        amount: plan.amount,
+        duration: plan.duration,
+      },
+      promoApplied: payment.promoCode ? {
+        code: payment.promoCode,
+        discountAmount: payment.discountAmount,
+        originalAmount: payment.originalAmount,
+      } : null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Payment verification failed" });
@@ -227,9 +309,9 @@ router.post("/consume-interview", verifyToken, async (req, res) => {
 
     // Check if subscription is active
     if (!user.subscription.active) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "No active subscription",
-        requiresPayment: true 
+        requiresPayment: true
       });
     }
 
@@ -238,18 +320,18 @@ router.post("/consume-interview", verifyToken, async (req, res) => {
       await User.findByIdAndUpdate(userId, {
         "subscription.active": false
       });
-      
-      return res.status(403).json({ 
+
+      return res.status(403).json({
         message: "Subscription expired",
-        requiresPayment: true 
+        requiresPayment: true
       });
     }
 
     // Check if user has remaining interviews
     if (user.subscription.interviewsRemaining <= 0) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "No interview credits remaining",
-        needsUpgrade: true 
+        needsUpgrade: true
       });
     }
 
@@ -261,9 +343,9 @@ router.post("/consume-interview", verifyToken, async (req, res) => {
       },
     });
 
-    res.json({ 
+    res.json({
       success: true,
-      remaining: user.subscription.interviewsRemaining - 1 
+      remaining: user.subscription.interviewsRemaining - 1
     });
 
   } catch (err) {

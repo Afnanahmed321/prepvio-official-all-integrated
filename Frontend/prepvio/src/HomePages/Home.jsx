@@ -1,6 +1,6 @@
 // Home.js
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import AuthModal from "../components/AuthModal"; // Add this line
@@ -80,10 +80,10 @@ const switchVariants = {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { type: "spring", stiffness: 100, damping: 20 } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 20 }
   }
 };
 
@@ -121,12 +121,12 @@ const HeroTextSection = () => {
 
   return (
     <>
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
         type={modalType}
       />
-      
+
       <motion.div variants={itemSideVariants("left")} className="flex flex-col justify-center h-full relative z-30">
         <motion.div variants={floatVariants} animate="animate" className="absolute -top-16 -left-12 w-32 h-32 bg-purple-200/40 rounded-full blur-3xl -z-10 pointer-events-none" />
 
@@ -145,16 +145,16 @@ const HeroTextSection = () => {
         </p>
 
         <div className="flex items-center gap-4 ml-1 relative z-40">
-          <motion.button 
+          <motion.button
             onClick={handleStartPractice}
-            whileHover="hover" 
-            whileTap="tap" 
+            whileHover="hover"
+            whileTap="tap"
             className="flex items-center gap-0 group cursor-pointer"
           >
             <span className="bg-[#1A1A1A] text-white px-8 py-4 rounded-l-full font-bold text-lg shadow-xl shadow-gray-300/50 z-10 relative">
               {buttonText} {/* ✅ Dynamic button text */}
             </span>
-            <motion.span 
+            <motion.span
               className="w-14 h-[3.75rem] flex items-center justify-center rounded-r-full bg-[#D4F478] border-l-2 border-[#1A1A1A] group-hover:bg-[#cbf060] transition-colors origin-left"
               variants={{ hover: { x: 5 }, tap: { x: 0 } }}
             >
@@ -246,15 +246,15 @@ const SuccessStoryCard = () => (
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
       <div className="relative mt-8 mb-4 w-full flex justify-center perspective-1000">
         <div className="w-48 h-48 rounded-full bg-blue-100/50 absolute top-4 blur-2xl scale-75 animate-pulse pointer-events-none" />
-        
-        <motion.img 
-          initial={{ rotateY: 10 }} 
-          whileHover={{ rotateY: 0, scale: 1.05 }} 
-          transition={{ duration: 0.5 }} 
-          src={ASSETS.siraAi} 
-          alt="SIRA AI" 
-          className="relative z-10 w-48 h-60 object-cover rounded-[2rem] shadow-2xl shadow-blue-900/20" 
-          style={{ clipPath: "path('M 20 0 H 172 A 20 20 0 0 1 192 20 V 190 A 40 40 0 0 1 152 230 H 40 A 40 40 0 0 1 0 190 V 20 A 20 20 0 0 1 20 0 Z')" }} 
+
+        <motion.img
+          initial={{ rotateY: 10 }}
+          whileHover={{ rotateY: 0, scale: 1.05 }}
+          transition={{ duration: 0.5 }}
+          src={ASSETS.siraAi}
+          alt="SIRA AI"
+          className="relative z-10 w-48 h-60 object-cover rounded-[2rem] shadow-2xl shadow-blue-900/20"
+          style={{ clipPath: "path('M 20 0 H 172 A 20 20 0 0 1 192 20 V 190 A 40 40 0 0 1 152 230 H 40 A 40 40 0 0 1 0 190 V 20 A 20 20 0 0 1 20 0 Z')" }}
         />
 
         <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute top-16 -right-2 z-20 bg-white p-2.5 rounded-2xl shadow-xl border border-gray-100">
@@ -363,13 +363,13 @@ const plans = [
     price: '₹79',
     priceValue: 79,
     duration: '/month',
-    interviews: 2,
+    interviews: 4,
     icon: Zap,
-    isRecommended: false, 
+    isRecommended: false,
     color: 'bg-blue-50 text-blue-600',
     description: "Essential tools for casual learners.",
     features: [
-      '2 AI Interviews',
+      '4 AI Interviews',
       'Standard support',
       'Course certificates',
       'Mobile app access'
@@ -378,16 +378,16 @@ const plans = [
   {
     id: 'premium',
     name: 'Pro Access',
-    price: '₹120',
-    priceValue: 120,
+    price: '₹179',
+    priceValue: 179,
     duration: '/month',
-    interviews: 4,
+    interviews: 9,
     icon: Crown,
-    isRecommended: true, 
-    color: 'bg-[#D4F478] text-black', 
+    isRecommended: true,
+    color: 'bg-[#D4F478] text-black',
     description: "Best for serious students & job seekers.",
     features: [
-      '4 AI Interviews',
+      '9 AI Interviews',
       'Priority 24/7 support',
       'Offline downloads',
       'Exclusive webinars',
@@ -396,40 +396,21 @@ const plans = [
   },
   {
     id: 'yearly',
-    name: 'Yearly Plan',
-    price: '₹999',
-    priceValue: 999,
-    duration: '/year',
-    interviews: 50,
+    name: 'Premium Plan',
+    price: '₹499',
+    priceValue: 499,
+    duration: '/month',
+    interviews: 25,
     icon: Rocket,
     isRecommended: false,
     color: 'bg-orange-50 text-orange-600',
     description: "Best value for dedicated learners.",
     features: [
-      '50 AI Interviews',
+      '25 AI Interviews',
       '1-on-1 Mentorship',
       'Live doubt sessions',
       'Job placement assistance',
       'Custom learning path'
-    ]
-  },
-  {
-    id: 'lifetime',
-    name: 'Lifetime',
-    price: '₹2,999',
-    priceValue: 2999,
-    duration: '/lifetime',
-    interviews: 999,
-    icon: Crown,
-    isRecommended: false,
-    color: 'bg-purple-50 text-purple-600',
-    description: "Unlimited access forever.",
-    features: [
-      'Unlimited AI Interviews',
-      'Lifetime access',
-      'All premium features',
-      'Priority support',
-      'Future updates included'
     ]
   }
 ];
@@ -438,21 +419,25 @@ const PricingSection = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false); // ✅ NEW
-  const [modalType, setModalType] = useState('login'); // ✅ NEW: 'login' or 'verify'
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [modalType, setModalType] = useState('login');
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidation, setPromoValidation] = useState(null);
+  const [isValidating, setIsValidating] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
   const { refreshUser, isAuthenticated, user } = useAuthStore();
 
   // ✅ Fetch current subscription
   useEffect(() => {
     const fetchSubscription = async () => {
       if (!isAuthenticated) return;
-      
+
       try {
         const res = await axios.get(
           "http://localhost:5000/api/payment/interview-status",
           { withCredentials: true }
         );
-        
+
         if (res.data.subscription && res.data.subscription.interviewsTotal > 0) {
           setCurrentPlan(res.data.subscription);
         }
@@ -463,6 +448,38 @@ const PricingSection = () => {
 
     fetchSubscription();
   }, [isAuthenticated]);
+
+  // Validate promo code
+  const validatePromoCode = async (planId) => {
+    if (!promoCode.trim()) {
+      setPromoValidation(null);
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/promo/validate",
+        { code: promoCode, planId }
+      );
+
+      if (data.valid) {
+        setPromoValidation({
+          valid: true,
+          ...data.pricing,
+          code: data.promoCode.code,
+          description: data.promoCode.description,
+        });
+      }
+    } catch (err) {
+      setPromoValidation({
+        valid: false,
+        message: err.response?.data?.message || "Invalid promo code",
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   // ✅ Razorpay Payment Handler
   const handlePaymentWithPlan = async (planId) => {
@@ -479,11 +496,16 @@ const PricingSection = () => {
     }
 
     setIsProcessing(true);
-    
+
     try {
+      const requestData = { planId };
+      if (promoCode.trim() && promoValidation?.valid) {
+        requestData.promoCode = promoCode;
+      }
+
       const { data } = await axios.post(
         "http://localhost:5000/api/payment/create-order",
-        { planId }
+        requestData
       );
 
       const options = {
@@ -502,12 +524,12 @@ const PricingSection = () => {
 
             if (verifyRes.data.success) {
               await refreshUser();
-              
+
               const res = await axios.get(
                 "http://localhost:5000/api/payment/interview-status",
                 { withCredentials: true }
               );
-              
+
               if (res.data.subscription) {
                 setCurrentPlan(res.data.subscription);
               }
@@ -530,7 +552,7 @@ const PricingSection = () => {
           color: "#1A1A1A",
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             setIsProcessing(false);
             setSelectedPlan(null);
           }
@@ -539,7 +561,7 @@ const PricingSection = () => {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-      
+
     } catch (err) {
       console.error("Payment error:", err);
       alert("Payment initiation failed. Please try again.");
@@ -550,154 +572,304 @@ const PricingSection = () => {
 
   const handlePlanSelect = (planId) => {
     if (!isAuthenticated) {
-      setModalType('login'); // ✅ CHANGED
-      setShowAuthModal(true); // ✅ CHANGED
+      setModalType('login');
+      setShowAuthModal(true);
       return;
     }
 
     if (!user?.isVerified) {
-      setModalType('verify'); // ✅ CHANGED
-      setShowAuthModal(true); // ✅ CHANGED
+      setModalType('verify');
+      setShowAuthModal(true);
       return;
     }
 
     setSelectedPlan(planId);
-    handlePaymentWithPlan(planId);
+    setShowPromoInput(true);
+    setPromoCode("");
+    setPromoValidation(null);
   };
-  
+
+  const proceedToPayment = () => {
+    if (selectedPlan) {
+      setShowPromoInput(false);
+      handlePaymentWithPlan(selectedPlan);
+    }
+  };
+
 
   return (
     <>
-    <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
         type={modalType}
       />
-    <div className="max-w-[1600px] mx-auto px-6 ">
-    
-      <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  className="text-center max-w-3xl mx-auto mb-30"
->
-  {/* Eyebrow */}
-  <div className="text-center max-w-2xl mx-auto mb-10">
-  <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">Choose Your Plan</h2>
-  <p className="text-lg text-gray-500 font-medium leading-relaxed">
-            Get interview-ready in days, not weeks. Start now.
-          </p>
-  </div>
-  
-</motion.div>
+      <div className="max-w-[1600px] mx-auto px-6 ">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-3xl mx-auto mb-30"
+        >
+          {/* Eyebrow */}
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">Choose Your Plan</h2>
+            <p className="text-lg text-gray-500 font-medium leading-relaxed">
+              Get interview-ready in days, not weeks. Start now.
+            </p>
+          </div>
+
+        </motion.div>
 
 
-      
 
-      {/* --- PRICING CARDS --- */}
-      <motion.div 
-        id="pricing-cards"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"
-      >
-        {plans.map((plan) => {
-          const Icon = plan.icon;
-          const isDark = plan.isRecommended;
-          const isCurrentPlan = currentPlan?.active && currentPlan?.planId === plan.id;
-          const hasCreditsRemaining = isCurrentPlan && currentPlan.interviewsRemaining > 0;
-          const disableButton = isCurrentPlan && hasCreditsRemaining;
-          
-          return (
-            <motion.div 
-              key={plan.id}
-              variants={cardVariants}
-              whileHover={{ y: -10 }}
-              className={`
+
+        {/* --- PRICING CARDS --- */}
+        <motion.div
+          id="pricing-cards"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-7xl mx-auto"
+        >
+          {plans.map((plan) => {
+            const Icon = plan.icon;
+            const isDark = plan.isRecommended;
+            const isCurrentPlan = currentPlan?.active && currentPlan?.planId === plan.id;
+            const hasCreditsRemaining = isCurrentPlan && currentPlan.interviewsRemaining > 0;
+            const disableButton = isCurrentPlan && hasCreditsRemaining;
+
+            return (
+              <motion.div
+                key={plan.id}
+                variants={cardVariants}
+                whileHover={{ y: -10 }}
+                className={`
                 relative rounded-[2.5rem] p-8 md:p-10 transition-all duration-500 flex flex-col h-full
-                ${isDark 
-                  ? 'bg-[#1A1A1A] text-white shadow-2xl shadow-gray-900/40 lg:scale-110 z-10 ring-1 ring-white/10' 
-                  : 'bg-white border border-gray-100 text-gray-900 shadow-xl shadow-gray-200/50 hover:border-gray-300'
-                }
+                ${isDark
+                    ? 'bg-[#1A1A1A] text-white shadow-2xl shadow-gray-900/40 lg:scale-110 z-10 ring-1 ring-white/10'
+                    : 'bg-white border border-gray-100 text-gray-900 shadow-xl shadow-gray-200/50 hover:border-gray-300'
+                  }
               `}
-            >
-              {/* Popular Badge */}
-              {isDark && (
-                <div className="absolute top-0 inset-x-0 flex justify-center -mt-4">
-                  <div className="bg-[#D4F478] text-black text-xs font-black px-6 py-2 rounded-full shadow-lg tracking-widest uppercase border-4 border-[#FDFBF9]">
-                    Most Popular
+              >
+                {/* Popular Badge */}
+                {isDark && (
+                  <div className="absolute top-0 inset-x-0 flex justify-center -mt-4">
+                    <div className="bg-[#D4F478] text-black text-xs font-black px-6 py-2 rounded-full shadow-lg tracking-widest uppercase border-4 border-[#FDFBF9]">
+                      Most Popular
+                    </div>
+                  </div>
+                )}
+
+                {/* Card Header */}
+                <div className="mb-8">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${plan.color}`}>
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <p className={`text-sm font-medium mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {plan.description}
+                  </p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black tracking-tight">{plan.price}</span>
+                    <span className={`text-lg font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {plan.duration}
+                    </span>
                   </div>
                 </div>
-              )}
 
-              {/* Card Header */}
-              <div className="mb-8">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${plan.color}`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className={`text-sm font-medium mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {plan.description}
-                </p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black tracking-tight">{plan.price}</span>
-                  <span className={`text-lg font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {plan.duration}
-                  </span>
-                </div>
-              </div>
+                {/* Divider */}
+                <div className={`h-px w-full mb-8 ${isDark ? 'bg-white/10' : 'bg-gray-100'}`} />
 
-              {/* Divider */}
-              <div className={`h-px w-full mb-8 ${isDark ? 'bg-white/10' : 'bg-gray-100'}`} />
+                {/* Features */}
+                <ul className="space-y-4 mb-8 flex-1">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <div className={`mt-0.5 rounded-full p-0.5 ${isDark ? 'bg-[#D4F478] text-black' : 'bg-green-100 text-green-600'}`}>
+                        <Check className="w-3 h-3" strokeWidth={4} />
+                      </div>
+                      <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              {/* Features */}
-              <ul className="space-y-4 mb-8 flex-1">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <div className={`mt-0.5 rounded-full p-0.5 ${isDark ? 'bg-[#D4F478] text-black' : 'bg-green-100 text-green-600'}`}>
-                      <Check className="w-3 h-3" strokeWidth={4} />
-                    </div>
-                    <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Action Button */}
-              <button
-                onClick={() => handlePlanSelect(plan.id)}
-                disabled={disableButton || (isProcessing && selectedPlan === plan.id)}
-                className={`
+                {/* Action Button */}
+                <button
+                  onClick={() => handlePlanSelect(plan.id)}
+                  disabled={disableButton || (isProcessing && selectedPlan === plan.id)}
+                  className={`
                   w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all shadow-lg flex items-center justify-center gap-2
-                  ${
-                    disableButton
+                  ${disableButton
                       ? 'bg-green-100 text-green-700 cursor-not-allowed'
                       : isProcessing && selectedPlan === plan.id
                         ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                         : isDark
                           ? 'bg-[#D4F478] text-black hover:bg-white hover:scale-[1.02]'
                           : 'bg-[#1A1A1A] text-white hover:bg-gray-800'
-                  }
+                    }
                 `}
-              >
-                {disableButton ? (
+                >
+                  {disableButton ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      Current Plan
+                    </>
+                  ) : isProcessing && selectedPlan === plan.id ? (
+                    <>Processing...</>
+                  ) : (
+                    <>
+                      Choose {plan.name}
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </button>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+
+      {/* PROMO CODE MODAL */}
+      <AnimatePresence>
+        {showPromoInput && selectedPlan && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowPromoInput(false);
+              setSelectedPlan(null);
+              setPromoCode("");
+              setPromoValidation(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            >
+              {(() => {
+                const plan = plans.find(p => p.id === selectedPlan);
+                if (!plan) return null;
+
+                return (
                   <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    Current Plan
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-black text-gray-900 mb-2">
+                        {plan.name}
+                      </h3>
+                      <p className="text-4xl font-black text-gray-900">
+                        {promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}
+                      </p>
+                      {promoValidation?.valid && (
+                        <p className="text-sm text-gray-500 line-through">
+                          Original: {plan.price}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-dashed border-green-300">
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        🎁 Have a promo code?
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoCode}
+                          onChange={(e) => {
+                            setPromoCode(e.target.value.toUpperCase());
+                            setPromoValidation(null);
+                          }}
+                          placeholder="Enter PREP29"
+                          autoComplete="off"
+                          className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-green-500 focus:outline-none font-medium"
+                        />
+                        <button
+                          onClick={() => validatePromoCode(selectedPlan)}
+                          disabled={!promoCode.trim() || isValidating}
+                          className={`px-6 py-3 rounded-xl font-bold transition-all ${promoCode.trim()
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                        >
+                          {isValidating ? 'Checking...' : 'Apply'}
+                        </button>
+                      </div>
+
+                      {promoValidation && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`mt-3 p-3 rounded-xl ${promoValidation.valid
+                            ? 'bg-green-100 border-2 border-green-300 text-green-800'
+                            : 'bg-red-100 border-2 border-red-300 text-red-800'
+                            }`}
+                        >
+                          {promoValidation.valid ? (
+                            <div>
+                              <p className="font-bold text-sm mb-1">{promoValidation.code} Applied Successfully</p>
+                              <p className="text-xs mb-2">
+                                {promoValidation.code === 'PREP29'
+                                  ? "This plan includes all features enabled and 2 interviews."
+                                  : promoValidation.description}
+                              </p>
+                              <div className="text-sm space-y-1">
+                                <div className="flex justify-between">
+                                  <span>Original:</span>
+                                  <span className="line-through">₹{promoValidation.originalAmount}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-green-700">
+                                  <span>Discount:</span>
+                                  <span>-₹{promoValidation.discountAmount}</span>
+                                </div>
+                                <div className="flex justify-between font-black text-lg">
+                                  <span>Final:</span>
+                                  <span>₹{promoValidation.finalAmount}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-bold">❌ {promoValidation.message}</p>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={proceedToPayment}
+                        disabled={isProcessing}
+                        className="flex-1 bg-[#1A1A1A] text-white font-bold py-4 px-6 rounded-2xl hover:bg-black transition-all disabled:opacity-50"
+                      >
+                        {isProcessing ? 'Processing...' : `Pay ${promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}`}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowPromoInput(false);
+                          setSelectedPlan(null);
+                          setPromoCode("");
+                          setPromoValidation(null);
+                        }}
+                        className="px-6 py-4 rounded-2xl border-2 border-gray-200 hover:border-gray-300 font-bold text-gray-700 hover:bg-gray-50 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    {/* <div className="mt-4 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
+                      <p className="text-xs font-bold text-yellow-800 mb-1">PREP29 applied successfully</p>
+                      <p className="text-xs text-yellow-700">This plan includes all features enabled and 2 interviews.</p>
+                    </div> */}
                   </>
-                ) : isProcessing && selectedPlan === plan.id ? (
-                  <>Processing...</>
-                ) : (
-                  <>
-                    Choose {plan.name}
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </button>
+                );
+              })()}
             </motion.div>
-          );
-        })}
-      </motion.div>
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
@@ -706,10 +878,10 @@ const PricingSection = () => {
 
 // ✅ HERO COMPONENT
 const Hero = () => {
-  const [activeStep, setActiveStep] = useState(0); 
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => { setActiveStep((prev) => (prev === 0 ? 1 : 0)); }, 5000); 
+    const interval = setInterval(() => { setActiveStep((prev) => (prev === 0 ? 1 : 0)); }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -739,7 +911,7 @@ const Home = () => {
     <div className="min-h-screen bg-[#FDFBF9] p-3 md:p-6 font-sans selection:bg-[#D4F478] selection:text-black overflow-x-hidden relative">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none -z-50"><div className="absolute top-[-10%] right-[-5%] w-[60vw] h-[60vw] bg-gradient-to-b from-blue-50 to-transparent rounded-full blur-[120px] opacity-60" /><div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-gradient-to-t from-pink-50 to-transparent rounded-full blur-[120px] opacity-60" /></div>
-      
+
       <Header />
 
       <div className="flex flex-col gap-8 mt-0">
@@ -748,20 +920,20 @@ const Home = () => {
         <ProblemSection />
 
         <div id="explore" className="scroll-mt-24">
-            <ZigZagServices /> 
+          <ZigZagServices />
         </div>
 
         <div id="about" className="scroll-mt-24">
-            <AboutUs /> 
+          <AboutUs />
         </div>
-        
+
         <PricingSection />
-        
+
         <div id="faqs" className="scroll-mt-24">
-            <FAQSection /> 
+          <FAQSection />
         </div>
       </div>
-      
+
       <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } .animate-marquee { animation: marquee 30s linear infinite; } .perspective-1000 { perspective: 1000px; }`}</style>
     </div>
   );

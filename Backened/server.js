@@ -10,7 +10,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import PDFDocument from "pdfkit";
 import { ConnectDB } from "./DB/ConnectDB.js";
 import passport from "passport";
-import "./config/passport.js"; 
+import "./config/passport.js";
 import http from "http";
 import { Server } from "socket.io";
 
@@ -25,6 +25,7 @@ import notificationRoutes from "./Routes/notificationRoutes.js";
 
 
 import verifyPayment from "./Routes/paymentRoute.js";
+import promoCodeRoutes from "./Routes/promoCodeRoute.js";
 
 const nervousCaptures = new Map();
 import fs from "fs";
@@ -186,7 +187,7 @@ const r2Client = new S3Client({
 //     // Try to load the image from the Python-saved path
 //     try {
 //       const fs = require('fs');
-      
+
 //       // Verify file exists
 //       if (fs.existsSync(nervousData.imagePath)) {
 //         doc.image(nervousData.imagePath, {
@@ -349,8 +350,7 @@ app.post("/api/upload", async (req, res) => {
       doc.fontSize(11)
         .font("Helvetica")
         .text(
-          `Role: ${role || "N/A"}  •  Company Type: ${
-            companyType || "N/A"
+          `Role: ${role || "N/A"}  •  Company Type: ${companyType || "N/A"
           }  •  Date: ${new Date().toLocaleDateString()}`,
           margin,
           55
@@ -378,74 +378,74 @@ app.post("/api/upload", async (req, res) => {
 
         /* ===== INSERT NERVOUS SECTION BEFORE FINAL ANALYSIS ===== */
         /* ===== INSERT NERVOUS SECTION BEFORE FINAL ANALYSIS ===== */
-if (trimmed === "=== FINAL ANALYSIS ===" && !nervousSectionRendered) {
-  nervousSectionRendered = true;
+        if (trimmed === "=== FINAL ANALYSIS ===" && !nervousSectionRendered) {
+          nervousSectionRendered = true;
 
-  if (nervousData?.imageBase64) {
-    doc.addPage();
+          if (nervousData?.imageBase64) {
+            doc.addPage();
 
-    doc.font("Helvetica-Bold")
-      .fontSize(16)
-      .fillColor("#111827")
-      .text("Behavioral Observation (Nervousness Detection)");
+            doc.font("Helvetica-Bold")
+              .fontSize(16)
+              .fillColor("#111827")
+              .text("Behavioral Observation (Nervousness Detection)");
 
-    doc.moveDown(1);
+            doc.moveDown(1);
 
-    doc.font("Helvetica")
-      .fontSize(11)
-      .fillColor("#374151")
-      .text(
-        "During the interview, moments of elevated nervousness were detected based on facial micro-movements, eye blink patterns, head pose variations, and lip movements.",
-        { width: contentWidth }
-      );
+            doc.font("Helvetica")
+              .fontSize(11)
+              .fillColor("#374151")
+              .text(
+                "During the interview, moments of elevated nervousness were detected based on facial micro-movements, eye blink patterns, head pose variations, and lip movements.",
+                { width: contentWidth }
+              );
 
-    doc.moveDown(0.8);
+            doc.moveDown(0.8);
 
-    if (typeof nervousData.score === "number") {
-      doc.font("Helvetica-Bold")
-        .fillColor("#92400E")
-        .text(
-          `Peak Nervousness Score: ${nervousData.score.toFixed(2)} / 1.00`
-        );
-      doc.moveDown(0.6);
-    }
+            if (typeof nervousData.score === "number") {
+              doc.font("Helvetica-Bold")
+                .fillColor("#92400E")
+                .text(
+                  `Peak Nervousness Score: ${nervousData.score.toFixed(2)} / 1.00`
+                );
+              doc.moveDown(0.6);
+            }
 
-    // ✅ FIX: Convert base64 to Buffer and embed directly
-    try {
-      // Remove data URL prefix if present
-      const base64Data = nervousData.imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      
-      // Convert base64 to Buffer
-      const imageBuffer = Buffer.from(base64Data, 'base64');
+            // ✅ FIX: Convert base64 to Buffer and embed directly
+            try {
+              // Remove data URL prefix if present
+              const base64Data = nervousData.imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
-      // Embed image directly in PDF
-      doc.image(imageBuffer, {
-        fit: [400, 300],
-        align: "center",
-      });
+              // Convert base64 to Buffer
+              const imageBuffer = Buffer.from(base64Data, 'base64');
 
-      console.log("✅ Nervousness image added to PDF from base64");
-    } catch (imgErr) {
-      console.error("❌ Error embedding nervousness image:", imgErr.message);
-      doc.font("Helvetica-Oblique")
-        .fontSize(10)
-        .fillColor("#6B7280")
-        .text("Nervousness image unavailable (embedding error).");
-    }
+              // Embed image directly in PDF
+              doc.image(imageBuffer, {
+                fit: [400, 300],
+                align: "center",
+              });
 
-    doc.moveDown(1);
+              console.log("✅ Nervousness image added to PDF from base64");
+            } catch (imgErr) {
+              console.error("❌ Error embedding nervousness image:", imgErr.message);
+              doc.font("Helvetica-Oblique")
+                .fontSize(10)
+                .fillColor("#6B7280")
+                .text("Nervousness image unavailable (embedding error).");
+            }
 
-    doc.font("Helvetica-Oblique")
-      .fontSize(10)
-      .fillColor("#6B7280")
-      .text(
-        "Note: Nervousness during interviews is common and does not negatively reflect technical ability. This data is for self-improvement only.",
-        { width: contentWidth }
-      );
-  } else {
-    console.log("ℹ️ No nervousness data captured during this interview");
-  }
-}
+            doc.moveDown(1);
+
+            doc.font("Helvetica-Oblique")
+              .fontSize(10)
+              .fillColor("#6B7280")
+              .text(
+                "Note: Nervousness during interviews is common and does not negatively reflect technical ability. This data is for self-improvement only.",
+                { width: contentWidth }
+              );
+          } else {
+            console.log("ℹ️ No nervousness data captured during this interview");
+          }
+        }
 
         /* ===== FINAL ANALYSIS HEADER ===== */
         if (trimmed === "=== FINAL ANALYSIS ===") {
@@ -519,7 +519,7 @@ if (trimmed === "=== FINAL ANALYSIS ===" && !nervousSectionRendered) {
     // ✅ CLEANUP SESSION MEMORY
 
     console.log("UPLOAD sessionId:", sessionId);
-console.log("AVAILABLE sessions:", [...nervousCaptures.keys()]);
+    console.log("AVAILABLE sessions:", [...nervousCaptures.keys()]);
 
     if (sessionId) nervousCaptures.delete(sessionId);
 
@@ -555,10 +555,6 @@ app.post("/api/nervous-frame", (req, res) => {
 });
 
 
-
-
-
-
 // --- 6. Code Execution Route (Piston API) ---
 app.post("/run", async (req, res) => {
   const { language, code, input } = req.body;
@@ -584,6 +580,7 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/interview", interviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/promo", promoCodeRoutes);
 
 
 

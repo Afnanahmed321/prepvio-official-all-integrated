@@ -141,7 +141,7 @@ const CodeEditorModal = ({ isOpen, onClose, problem, onSuccess, onSkip }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-7xl h-[90vh] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#1A1A1A] to-gray-900 text-white relative flex border border-gray-800"
@@ -155,37 +155,37 @@ const CodeEditorModal = ({ isOpen, onClose, problem, onSuccess, onSkip }) => {
             {problem?.description}
           </p>
           <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-3 font-bold">
-  Test Cases ({problem?.testCases?.length || 0})
-</h3>
-<div className="space-y-3">
-  {problem?.testCases?.map((t, i) => (
-    <div
-      key={i}
-      className="bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 text-sm hover:bg-gray-800/80 transition-colors"
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
-          {i + 1}
-        </div>
-        <span className="text-xs font-bold text-gray-400">Test Case {i + 1}</span>
-      </div>
-      <div className="space-y-1.5">
-        <div>
-          <span className="text-gray-500 text-xs font-medium">Input:</span>
-          <div className="mt-1 bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2">
-            <code className="text-gray-300 font-mono text-xs">{t.input}</code>
+            Test Cases ({problem?.testCases?.length || 0})
+          </h3>
+          <div className="space-y-3">
+            {problem?.testCases?.map((t, i) => (
+              <div
+                key={i}
+                className="bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 text-sm hover:bg-gray-800/80 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
+                    {i + 1}
+                  </div>
+                  <span className="text-xs font-bold text-gray-400">Test Case {i + 1}</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">Input:</span>
+                    <div className="mt-1 bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2">
+                      <code className="text-gray-300 font-mono text-xs">{t.input}</code>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">Expected Output:</span>
+                    <div className="mt-1 bg-gray-900/50 border border-emerald-800/30 rounded-lg px-3 py-2">
+                      <code className="text-[#D4F478] font-mono text-xs font-medium">{t.expected}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div>
-          <span className="text-gray-500 text-xs font-medium">Expected Output:</span>
-          <div className="mt-1 bg-gray-900/50 border border-emerald-800/30 rounded-lg px-3 py-2">
-            <code className="text-[#D4F478] font-mono text-xs font-medium">{t.expected}</code>
-          </div>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
         </aside>
 
         {/* MAIN */}
@@ -520,7 +520,9 @@ function DynamicModel({ speechText, onSpeechEnd, ...props }) {
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.rate = 1.2;
+    utterance.rate = 2.0;  // Slower, more natural pace (0.9 = 90% of normal speed)
+    utterance.pitch = 1.0; // Normal pitch
+    utterance.volume = 1.0; // Full volume
 
     let voices = window.speechSynthesis.getVoices();
 
@@ -745,34 +747,82 @@ const InterviewScreen = ({
   const [selectedCodingQuestions, setSelectedCodingQuestions] = useState([]);
   const [rounds, setRounds] = useState([]);
   const [hasCodingRound, setHasCodingRound] = useState(false);
+  const [technicalQuestionCount, setTechnicalQuestionCount] = useState(0);
+
+
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (interviewStage === "coding" && codingProblem) {
+      setIsCodeEditorOpen(true);
+    }
+  }, [interviewStage, codingProblem]);
+
 
   // Fetch rounds for the selected company and role
   useEffect(() => {
     const fetchRounds = async () => {
       try {
+        console.log("🔍 Fetching rounds for:", { companyType, role });
+
         const response = await axios.get(
           `http://localhost:5000/api/companies/${encodeURIComponent(companyType)}/${encodeURIComponent(role)}/rounds`
         );
-        const roundsList = response.data;
+
+        let roundsList = [];
+        if (response.data && Array.isArray(response.data.rounds)) {
+          roundsList = response.data.rounds;
+        } else if (Array.isArray(response.data)) {
+          roundsList = response.data;
+        } else {
+          console.warn("⚠️ Unexpected rounds response format:", response.data);
+          roundsList = [];
+        }
+
+        console.log("📋 Rounds received:", roundsList.map(r => r.name));
         setRounds(roundsList);
-        
-        // Check if coding round exists
-        const hasCoding = roundsList.some(
-          (round) => round.name.toLowerCase() === "coding"
-        );
+
+        // Enhanced coding round detection - handles typos and variations
+        const hasCoding = roundsList.some((round) => {
+          if (!round || !round.name) {
+            console.warn("⚠️ Found round without name:", round);
+            return false;
+          }
+
+          const rName = round.name.toLowerCase().trim();
+
+          // STRICT coding round detection as requested
+          // Only look for "Coding Round" or close variations, NOT OA/Design
+          const isCodingRound = (
+            rName === "coding round" ||
+            rName === "coding" ||
+            rName === "technical coding"
+          );
+
+          if (isCodingRound) {
+            console.log("✅ Coding round detected:", round.name);
+          }
+
+          return isCodingRound;
+        });
+
+        console.log("🎯 Final hasCodingRound:", hasCoding);
         setHasCodingRound(hasCoding);
 
         // Initialize coding questions only if coding round exists
         if (hasCoding) {
           const questions = getRandomCodingQuestions(3);
+          console.log("📝 Loaded", questions.length, "coding questions");
           setSelectedCodingQuestions(questions);
+        } else {
+          console.log("⏭️ No coding round - will skip directly to final");
+          setSelectedCodingQuestions([]);
         }
       } catch (error) {
-        console.error("Error fetching rounds:", error);
-        // Default to not having coding round if fetch fails
+        console.error("❌ Error fetching rounds:", error);
         setHasCodingRound(false);
+        setSelectedCodingQuestions([]);
       }
     };
 
@@ -792,10 +842,10 @@ const InterviewScreen = ({
         console.log("✅ Interview credit consumed");
       } catch (err) {
         console.error("❌ Credit consumption failed:", err);
-        
+
         if (err.response?.status === 403) {
           const data = err.response.data;
-          
+
           if (data.requiresPayment || data.needsUpgrade) {
             alert(`⚠️ ${data.message}`);
             navigate("/dashboard/pricing", { replace: true });
@@ -1038,7 +1088,11 @@ const InterviewScreen = ({
       }
 
       const data = await res.json();
-      return data?.choices?.[0]?.message?.content || "No response";
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content || content.trim() === "") {
+        throw new Error("Empty response from AI");
+      }
+      return content;
     } catch (err) {
       console.error("Fireworks API Error:", err);
       throw err;
@@ -1091,11 +1145,11 @@ Keep it concise and actionable.`;
 
   // Get next coding problem from pre-selected questions
   const getNextCodingProblem = useCallback(() => {
-  if (!selectedCodingQuestions.length) return null;
-  if (codingCount >= selectedCodingQuestions.length) return null;
+    if (!selectedCodingQuestions.length) return null;
+    if (codingCount >= selectedCodingQuestions.length) return null;
 
-  return selectedCodingQuestions[codingCount];
-}, [selectedCodingQuestions, codingCount]);
+    return selectedCodingQuestions[codingCount];
+  }, [selectedCodingQuestions, codingCount]);
 
 
 
@@ -1107,52 +1161,69 @@ Keep it concise and actionable.`;
   }, []);
 
   const startFinalRound = async () => {
-  try {
-    const systemInstruction = `
+    try {
+      const systemInstruction = `
 You are Sira, conducting the FINAL ROUND of the interview.
 
-Ask ONE question at a time in this order:
-1. Salary expectations
-2. Preferred work mode (remote/hybrid/office)
-3. Notice period / availability
-4. Benefits expectations
-5. Ask if they have questions for us
+CONTEXT: This is the closing conversation where you discuss logistics, salary, and fit.
 
-Be professional and realistic.
+INSTRUCTIONS:
+- Based on the role (${role}) and company type (${companyType}), generate 3-5 relevant closing questions.
+- Topics MUST include: Salary expectations, Notice period/Start date, Work mode preference (Remote/Hybrid).
+- You may also ask about: Specific benefits, Team culture fit, or Career growth expectations appropriate for this level.
+- Ask ONE question at a time.
+- Be professional, polite, and realistic.
+
 Do NOT ask multiple questions at once.
 `;
 
-    const aiReply = await fetchFireworksContent(
-      formatHistoryForFireworks(chatMessages),
-      systemInstruction
-    );
+      const aiReply = await fetchFireworksContent(
+        formatHistoryForFireworks(chatMessages),
+        systemInstruction
+      );
 
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        sender: "AI",
-        text: aiReply.trim(),
-        time: new Date().toLocaleTimeString(),
-        stage: "final",
-      },
-    ]);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: "AI",
+          text: aiReply.trim(),
+          time: new Date().toLocaleTimeString(),
+          stage: "final",
+        },
+      ]);
 
-    textToSpeech(aiReply);
-  } catch (err) {
-    console.error("Final round failed:", err);
-  }
-};
+      textToSpeech(aiReply);
+    } catch (err) {
+      console.error("Final round failed:", err);
+    }
+  };
 
 
   const textToSpeech = useCallback((text) => {
     if (!text) return;
+
+    // Strip markdown formatting before speaking
+    const cleanText = text
+      .replace(/\*\*/g, '')           // Remove bold **text**
+      .replace(/\*/g, '')             // Remove italic *text*
+      .replace(/#{1,6}\s/g, '')       // Remove headers # ## ###
+      .replace(/`{1,3}[^`]*`{1,3}/g, (match) => match.replace(/`/g, '')) // Remove code backticks
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert [link](url) to just link text
+      .replace(/^\s*[-*+]\s/gm, '')   // Remove bullet points
+      .replace(/^\s*\d+\.\s/gm, '')   // Remove numbered lists
+      .trim();
+
     setIsSpeaking(true);
-    setCurrentAiSpeech(text);
+    setCurrentAiSpeech(cleanText);
   }, []);
 
   const handleSendMessage = useCallback(
     async (text) => {
       const messageToSend = text.trim();
+      if (interviewStage === "coding") {
+        return;
+      }
+
       if (!messageToSend || isLoadingAI || isSpeaking) return;
 
       if (recognitionRef.current) {
@@ -1185,7 +1256,6 @@ Do NOT ask multiple questions at once.
 
       const introQ = aiCount("intro");
       const transQ = aiCount("transition");
-      const techQ = aiCount("technical");
 
       // More realistic interview timing - increase questions per round (15-20 min total)
       if (interviewStage === "intro" && introQ >= 3) {
@@ -1226,11 +1296,12 @@ Do NOT ask multiple questions at once.
         return;
       }
 
-      if (interviewStage === "technical" && techQ >= 6) {
-        // Check if this role has a coding round
-        if (!hasCodingRound) {
-          const msg = "Thank you for participating in this interview. That concludes our technical assessment. We'll get back to you soon with feedback.";
+      if (interviewStage === "technical" && technicalQuestionCount >= 6) {
+        console.log("📊 Technical round complete. hasCodingRound:", hasCodingRound);
 
+        // Check if this role has a coding round
+        if (hasCodingRound && selectedCodingQuestions.length > 0) {
+          const msg = "That concludes the technical round. We will now move to the coding round.";
           setChatMessages((prev) => [
             ...prev,
             {
@@ -1240,19 +1311,36 @@ Do NOT ask multiple questions at once.
               stage: "technical",
             },
           ]);
-
           textToSpeech(msg);
-          
-          // End interview after a delay
-          setTimeout(() => {
-            setInterviewStage("end");
-          }, 2000);
 
+          setTimeout(() => {
+            setInterviewStage("coding");
+            const firstProblem = getNextCodingProblem();
+            console.log("🎯 First coding problem:", firstProblem);
+
+            if (firstProblem) {
+              setCodingProblem(firstProblem);
+              setChatMessages((prev) => [
+                ...prev,
+                {
+                  sender: "AI",
+                  text: `Your first coding problem is ready: "${firstProblem.title}". The Code Editor will open automatically.`,
+                  time: new Date().toLocaleTimeString(),
+                  stage: "coding",
+                },
+              ]);
+              // The useEffect will auto-open the editor
+            } else {
+              console.error("❌ Failed to load coding problem");
+              setError("Failed to load coding problem.");
+            }
+          }, 1500);
           return;
         }
 
-        const msg = "That concludes the technical round. We will now move to the coding round.";
-
+        // No coding round - skip to final
+        console.log("⏭️ Skipping coding round, moving to final");
+        const msg = "That concludes our technical assessment. We will now move to the final round.";
         setChatMessages((prev) => [
           ...prev,
           {
@@ -1262,43 +1350,23 @@ Do NOT ask multiple questions at once.
             stage: "technical",
           },
         ]);
-
         textToSpeech(msg);
 
         setTimeout(() => {
-          setInterviewStage("coding");
-          
-          // Get the first coding problem
-          const firstProblem = getNextCodingProblem();
-          if (firstProblem) {
-            setCodingProblem(firstProblem);
-
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                sender: "AI",
-                text: `Your first coding problem is ready: "${firstProblem.title}". Please open the Code Editor.`,
-                time: new Date().toLocaleTimeString(),
-                stage: "coding",
-              },
-            ]);
-
-            setTimeout(() => setIsCodeEditorOpen(true), 600);
-          } else {
-            setError("Failed to load coding problem.");
-          }
-        }, 1000);
-
+          setInterviewStage("final");
+          startFinalRound();
+        }, 2000);
         return;
       }
 
+      // IMPORTANT: Only set loading state if we're actually going to make an AI call
       setIsLoadingAI(true);
 
       try {
-let systemInstruction = "";
+        let systemInstruction = "";
 
-if (interviewStage === "intro")
-  systemInstruction = `
+        if (interviewStage === "intro")
+          systemInstruction = `
 You are Sira, a professional AI interviewer conducting the INTRODUCTION round for a ${role} position at a ${companyType}.
 
 CONTEXT: This is the first part of the interview where you get to know the candidate and establish rapport. Keep this round engaging and conversational - aim for 2-3 minutes total.
@@ -1349,8 +1417,8 @@ IMPORTANT INSTRUCTIONS:
 - Don't rush - let the conversation flow naturally
 `;
 
-else if (interviewStage === "transition")
-  systemInstruction = `
+        else if (interviewStage === "transition")
+          systemInstruction = `
 You are Sira, conducting the PRE-TECHNICAL round for a ${role} position at ${companyType}.
 
 CONTEXT: This bridges personal background and deep technical knowledge. You're assessing their foundational understanding, approach to problems, and technical confidence - aim for 2-3 minutes.
@@ -1377,8 +1445,8 @@ CRITICAL POINTS:
 - Reference their earlier answers when possible to show continuity
 `;
 
-else if (interviewStage === "technical")
-  systemInstruction = `
+        else if (interviewStage === "technical")
+          systemInstruction = `
 You are Sira, conducting the TECHNICAL DEEP-DIVE round for a ${role} position at ${companyType}.
 
 CONTEXT: This is the rigorous technical assessment round where you probe their knowledge depth, problem-solving approach, and system design thinking - aim for 5-7 minutes with 6 questions.
@@ -1411,8 +1479,8 @@ CRITICAL INSTRUCTIONS:
 - If they say "I don't know", ask: "What would you do to figure it out?" or "How would you approach learning that?"
 `;
 
-else if (interviewStage === "coding")
-  systemInstruction = `
+        else if (interviewStage === "coding")
+          systemInstruction = `
 You are Sira, overseeing the CODING round.
 
 CONTEXT: The candidate is solving coding problems in the code editor. They should work independently.
@@ -1438,29 +1506,26 @@ COMPLETION ACKNOWLEDGMENT:
 - "Good effort on that problem. Let's continue."
 `;
 
-else if (interviewStage === "final")
-  systemInstruction = `
+        else if (interviewStage === "final")
+          systemInstruction = `
 You are Sira, conducting the FINAL ROUND of the interview.
 
 CONTEXT: This is the closing stage where you discuss practical matters, logistics, and give the candidate an opportunity to ask questions. This happens AFTER the technical assessment.
 
 YOUR BEHAVIOR:
 - Acknowledge their overall performance positively and specifically (reference specific strengths from the interview)
-- Ask questions about practical matters in this order
+- Continue the conversation about practical matters
 - Be warm, encouraging, and professional
 - This round covers logistics, expectations, and ensures mutual fit
-- Allow 5-10 minutes for this round with 4-5 questions
+- Allow 5-10 minutes for this round
+- Ensure you cover: Salary, Work Mode, Notice Period, Benefits, and Candidate Questions
+- Adapt your questions based on the candidate's previous responses
 
-QUESTION SEQUENCE (ask one at a time):
-1. "We're very impressed with your technical knowledge and problem-solving approach. Before we move forward, let's discuss some practical aspects of the role. What are your salary expectations for this ${role} position?"
-
-2. "What type of work arrangement would be ideal for you - are you looking for fully remote, hybrid, or in-office work? And how important is flexibility in your work schedule?"
-
-3. "When would you ideally be able to start if we moved forward with an offer? Do you have any notice period with your current employer that we should consider?"
-
-4. "Are there any specific benefits or perks that are particularly important to you? For example, professional development opportunities, health insurance, stock options, flexible hours, etc.?"
-
-5. "Do you have any questions for us about the role, the team, the company culture, or the growth opportunities in this position?"
+INSTRUCTIONS:
+- Generate RELEVANT questions based on the role (${role}) and company type (${companyType})
+- Do not simply read from a list; make it conversational
+- If the candidate asks a question, answer it to the best of your ability as an AI representative of the company
+- Maintain the persona of a senior hiring manager or talent acquisition lead
 
 CRITICAL INSTRUCTIONS:
 - Listen carefully to their responses about compensation and logistics
@@ -1476,7 +1541,6 @@ We're impressed with your ${role} capabilities and your thoughtful approach to p
 
 In the meantime, if you have any follow-up questions, please don't hesitate to reach out. It was a pleasure speaking with you, and we're excited about the possibility of having you join our ${companyType} team!"
 `;
- 
 
         const formattedHistory = formatHistoryForFireworks([
           ...chatMessages,
@@ -1484,12 +1548,15 @@ In the meantime, if you have any follow-up questions, please don't hesitate to r
         ]);
 
         const aiReplyRaw = await fetchFireworksContent(
-  formattedHistory,
-  systemInstruction
-);
+          formattedHistory,
+          systemInstruction
+        );
 
-const aiReply = aiReplyRaw.trim();
+        const aiReply = aiReplyRaw.trim();
 
+        if (interviewStage === "technical") {
+          setTechnicalQuestionCount(prev => prev + 1);
+        }
 
         setCurrentQuestionIndex(prev => prev + 1);
         setCurrentQuestionText(aiReply);
@@ -1517,8 +1584,7 @@ const aiReply = aiReplyRaw.trim();
         ]);
 
         textToSpeech(aiReply);
-      }
-      catch (err) {
+      } catch (err) {
         console.error("AI Error:", err);
         setError("AI failed to respond.");
       } finally {
@@ -1535,6 +1601,11 @@ const aiReply = aiReplyRaw.trim();
       generateFeedbackForAnswer,
       getNextCodingProblem,
       textToSpeech,
+      hasCodingRound,
+      selectedCodingQuestions,
+      technicalQuestionCount,
+      role,
+      companyType,
     ]
   );
 
@@ -1731,7 +1802,7 @@ const aiReply = aiReplyRaw.trim();
     if (cameraAllowed && companyType && role && !greeted) {
       const startAiConversation = async () => {
         try {
-      const greetingPrompt = `
+          const greetingPrompt = `
 You are Sira, a professional AI interviewer for ${companyType}.
 
 Your EXACT opening greeting (be warm and welcoming, NOT robotic):
@@ -1952,7 +2023,7 @@ Key points:
                       </div>
                       <p className="text-sm">{msg.text}</p>
                       <div className="text-xs text-gray-500 mt-2">{msg.time}</div>
-                      
+
                       {msg.sender === "User" && msg.feedback && (
                         <div className="mt-3 pt-3 border-t border-gray-700">
                           <div className="text-xs font-bold text-[#D4F478] mb-1">Feedback</div>
@@ -2036,120 +2107,123 @@ Key points:
           onClose={() => setIsCodeEditorOpen(false)}
           problem={codingProblem}
           onSuccess={(userCode, testResults) => {
-  setSolvedProblems((prev) => [
-    ...prev,
-    {
-      problem: codingProblem,
-      userCode,
-      testResults,
-      skipped: false,
-      solvedAt: new Date().toISOString(),
-    },
-  ]);
+            setSolvedProblems((prev) => [
+              ...prev,
+              {
+                problem: codingProblem,
+                userCode,
+                testResults,
+                skipped: false,
+                solvedAt: new Date().toISOString(),
+              },
+            ]);
 
-  setIsCodeEditorOpen(false);
+            setIsCodeEditorOpen(false);
 
-  setCodingCount((prev) => {
-    const newCount = prev + 1;
+            setCodingCount((prev) => {
+              const newCount = prev + 1;
 
-    if (newCount >= selectedCodingQuestions.length) {
-      const msg =
-        "Great work! That concludes the coding round. We will now move to the next round.";
+              if (newCount >= selectedCodingQuestions.length) {
+                const msg =
+                  "Great work! That concludes the coding round. We will now move to the next round.";
 
-      setChatMessages((msgs) => [
-        ...msgs,
-        {
-          sender: "AI",
-          text: msg,
-          time: new Date().toLocaleTimeString(),
-          stage: "post-coding",
-        },
-      ]);
+                setChatMessages((msgs) => [
+                  ...msgs,
+                  {
+                    sender: "AI",
+                    text: msg,
+                    time: new Date().toLocaleTimeString(),
+                    stage: "post-coding",
+                  },
+                ]);
 
-      textToSpeech(msg);
-      setInterviewStage("final");
+                textToSpeech(msg);
+                setInterviewStage("final");
 
-setTimeout(() => {
-  startFinalRound();
-}, 800);
+                setTimeout(() => {
+                  startFinalRound();
+                }, 800);
 
-return newCount;
+                return newCount;
 
-    }
+              }
 
-    const nextProblem = selectedCodingQuestions[newCount];
-    setCodingProblem(nextProblem);
+              const nextProblem = selectedCodingQuestions[newCount];
+              setCodingProblem(nextProblem);
 
-    setChatMessages((msgs) => [
-      ...msgs,
-      {
-        sender: "AI",
-        text: `Next coding problem: "${nextProblem.title}". Please open the Code Editor.`,
-        time: new Date().toLocaleTimeString(),
-        stage: "coding",
-      },
-    ]);
+              setChatMessages((msgs) => [
+                ...msgs,
+                {
+                  sender: "AI",
+                  text: `Next coding problem: "${nextProblem.title}". Please open the Code Editor.`,
+                  time: new Date().toLocaleTimeString(),
+                  stage: "coding",
+                },
+              ]);
 
-    setTimeout(() => setIsCodeEditorOpen(true), 500);
+              // setTimeout(() => setIsCodeEditorOpen(true), 500);
 
-    return newCount;
-  });
-}}
+              return newCount;
+            });
+          }}
 
           onSkip={() => {
-  setSolvedProblems((prev) => [
-    ...prev,
-    {
-      problem: codingProblem,
-      userCode: null,
-      testResults: null,
-      skipped: true,
-      solvedAt: new Date().toISOString(),
-    },
-  ]);
+            setSolvedProblems((prev) => [
+              ...prev,
+              {
+                problem: codingProblem,
+                userCode: null,
+                testResults: null,
+                skipped: true,
+                solvedAt: new Date().toISOString(),
+              },
+            ]);
 
-  setIsCodeEditorOpen(false);
+            setIsCodeEditorOpen(false);
 
-  setCodingCount((prev) => {
-    const newCount = prev + 1;
+            setCodingCount((prev) => {
+              const newCount = prev + 1;
 
-    if (newCount >= selectedCodingQuestions.length) {
-      const msg =
-        "That concludes the coding round. Let's move to the next round.";
+              if (newCount >= selectedCodingQuestions.length) {
+                const msg =
+                  "That concludes the coding round. Let's move to the next round.";
 
-      setChatMessages((msgs) => [
-        ...msgs,
-        {
-          sender: "AI",
-          text: msg,
-          time: new Date().toLocaleTimeString(),
-          stage: "post-coding",
-        },
-      ]);
+                setChatMessages((msgs) => [
+                  ...msgs,
+                  {
+                    sender: "AI",
+                    text: msg,
+                    time: new Date().toLocaleTimeString(),
+                    stage: "post-coding",
+                  },
+                ]);
 
-      textToSpeech(msg);
-      setInterviewStage("final");
-      return newCount;
-    }
+                textToSpeech(msg);
+                setInterviewStage("final");
+                setTimeout(() => {
+                  startFinalRound();
+                }, 800);
+                return newCount;
+              }
 
-    const nextProblem = selectedCodingQuestions[newCount];
-    setCodingProblem(nextProblem);
+              const nextProblem = selectedCodingQuestions[newCount];
+              setCodingProblem(nextProblem);
 
-    setChatMessages((msgs) => [
-      ...msgs,
-      {
-        sender: "AI",
-        text: `Next coding problem: "${nextProblem.title}". Please open the Code Editor.`,
-        time: new Date().toLocaleTimeString(),
-        stage: "coding",
-      },
-    ]);
+              setChatMessages((msgs) => [
+                ...msgs,
+                {
+                  sender: "AI",
+                  text: `Next coding problem: "${nextProblem.title}". Please open the Code Editor.`,
+                  time: new Date().toLocaleTimeString(),
+                  stage: "coding",
+                },
+              ]);
 
-    setTimeout(() => setIsCodeEditorOpen(true), 500);
+              setTimeout(() => setIsCodeEditorOpen(true), 500);
 
-    return newCount;
-  });
-}}
+              return newCount;
+            });
+          }}
 
         />
       )}

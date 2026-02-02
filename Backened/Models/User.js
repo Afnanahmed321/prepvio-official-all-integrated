@@ -182,6 +182,19 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    originalAmount: {
+      type: Number,
+      default: null, // Original amount before discount
+    },
+    discountAmount: {
+      type: Number,
+      default: 0, // Amount discounted via promo code
+    },
+    promoCode: {
+      type: String,
+      uppercase: true,
+      trim: true,
+    },
     provider: {
       type: String,
       enum: ["razorpay", "stripe", "paypal"],
