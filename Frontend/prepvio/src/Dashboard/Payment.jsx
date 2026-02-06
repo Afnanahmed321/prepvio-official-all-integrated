@@ -112,7 +112,9 @@ function Payment() {
   const [promoCode, setPromoCode] = useState("");
   const [promoValidation, setPromoValidation] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [showPromoInput, setShowPromoInput] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
   const { refreshUser } = useAuthStore();
 
   // ✅ Fetch current subscription
@@ -157,6 +159,21 @@ function Payment() {
           code: data.promoCode.code,
           description: data.promoCode.description,
         });
+
+        // Refresh order details with promo applied
+        try {
+          const orderData = await axios.post("/api/payment/create-order", { planId, promoCode });
+          setOrderDetails({
+            originalAmount: orderData.data.originalAmount,
+            upgradeDiscount: orderData.data.upgradeDiscount || 0,
+            discountAmount: orderData.data.discountAmount || 0,
+            finalAmount: orderData.data.finalAmount,
+            isUpgrade: orderData.data.isUpgrade || false,
+            promoCode: orderData.data.promoCode
+          });
+        } catch (err) {
+          console.error("Failed to refresh order details:", err);
+        }
       }
     } catch (err) {
       setPromoValidation({
@@ -183,13 +200,23 @@ function Payment() {
         requestData
       );
 
+      // Store order details for display (includes upgrade pricing info)
+      const orderDetails = {
+        originalAmount: data.originalAmount,
+        upgradeDiscount: data.upgradeDiscount || 0,
+        discountAmount: data.discountAmount || 0,
+        finalAmount: data.finalAmount,
+        isUpgrade: data.isUpgrade || false,
+        promoCode: data.promoCode
+      };
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: data.amount,
         currency: data.currency,
         order_id: data.orderId,
         name: "Prepvio AI",
-        description: `${data.planName} - ${data.interviews} Interviews`,
+        description: `${data.planName} - ${data.interviews} Interviews${orderDetails.isUpgrade ? ' (Upgrade)' : ''}`,
         handler: async function (response) {
           try {
             const verifyRes = await axios.post(
@@ -240,11 +267,35 @@ function Payment() {
     }
   };
 
-  const handlePlanSelect = (planId) => {
+  const handlePlanSelect = async (planId) => {
+    // Prevent multiple clicks
+    if (isCalculatingPrice || isProcessing) return;
+
+    setIsCalculatingPrice(true);
     setSelectedPlan(planId);
-    setShowPromoInput(true);
     setPromoCode("");
     setPromoValidation(null);
+    setOrderDetails(null);
+
+    // Fetch order details to show upgrade pricing
+    try {
+      const { data } = await axios.post("/api/payment/create-order", { planId });
+      setOrderDetails({
+        originalAmount: data.originalAmount,
+        upgradeDiscount: data.upgradeDiscount || 0,
+        discountAmount: data.discountAmount || 0,
+        finalAmount: data.finalAmount,
+        isUpgrade: data.isUpgrade || false,
+        promoCode: data.promoCode
+      });
+      setShowPromoInput(true);
+    } catch (err) {
+      console.error("Failed to fetch order details:", err);
+      alert("Failed to calculate plan price. Please try again.");
+      setSelectedPlan(null);
+    } finally {
+      setIsCalculatingPrice(false);
+    }
   };
 
   const proceedToPayment = () => {
@@ -615,9 +666,11 @@ function Payment() {
                         ? 'bg-green-100 text-green-700 cursor-not-allowed'
                         : isProcessing && selectedPlan === plan.id
                           ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                          : isDark
-                            ? 'bg-[#D4F478] text-black hover:bg-white hover:scale-[1.02] cursor-pointer'
-                            : 'bg-[#1A1A1A] text-white hover:bg-gray-800 cursor-pointer'
+                          : isCalculatingPrice && selectedPlan === plan.id
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : isDark
+                              ? 'bg-[#D4F478] text-black hover:bg-white hover:scale-[1.02] cursor-pointer'
+                              : 'bg-[#1A1A1A] text-white hover:bg-gray-800 cursor-pointer'
                       }
                     `}
                   >
@@ -626,7 +679,7 @@ function Payment() {
                         <CheckCircle2 className="w-5 h-5" />
                         Current Plan
                       </>
-                    ) : isProcessing && selectedPlan === plan.id ? (
+                    ) : (isProcessing || isCalculatingPrice) && selectedPlan === plan.id ? (
                       <>Processing...</>
                     ) : (
                       <>
@@ -745,16 +798,57 @@ function Payment() {
                     <div className="text-center mb-6">
                       <h3 className="text-2xl font-black text-gray-900 mb-2">
                         {plan.name}
+                        {orderDetails?.isUpgrade && (
+                          <span className="ml-2 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">
+                            Upgrade
+                          </span>
+                        )}
                       </h3>
                       <p className="text-4xl font-black text-gray-900">
-                        {promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}
+                        ₹{orderDetails?.finalAmount || plan.priceValue}
                       </p>
-                      {promoValidation?.valid && (
+                      {orderDetails && (orderDetails.upgradeDiscount > 0 || orderDetails.discountAmount > 0) && (
                         <p className="text-sm text-gray-500 line-through">
-                          Original: {plan.price}
+                          Original: ₹{orderDetails.originalAmount}
                         </p>
                       )}
                     </div>
+
+                    {/* Price Breakdown - Always Visible if Order Details exist */}
+                    {orderDetails && (
+                      <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+                        <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-gray-600" />
+                          Price Summary
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between text-gray-600">
+                            <span>Plan Price:</span>
+                            <span className="font-bold">₹{orderDetails.originalAmount}</span>
+                          </div>
+
+                          {orderDetails.isUpgrade && (
+                            <div className="flex justify-between text-blue-700 bg-blue-50 p-2 rounded-lg">
+                              <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Upgrade Discount:</span>
+                              <span className="font-bold">-₹{orderDetails.upgradeDiscount}</span>
+                            </div>
+                          )}
+
+                          {orderDetails.discountAmount > 0 && (
+                            <div className="flex justify-between text-green-700 bg-green-50 p-2 rounded-lg">
+                              <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Promo Applied:</span>
+                              <span className="font-bold">-₹{orderDetails.discountAmount}</span>
+                            </div>
+                          )}
+
+                          <div className="h-px bg-gray-300 my-2"></div>
+                          <div className="flex justify-between text-gray-900 font-black text-lg">
+                            <span>Total To Pay:</span>
+                            <span className="text-green-600">₹{orderDetails.finalAmount}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Promo Code Input */}
                     <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-dashed border-green-300">
@@ -834,7 +928,7 @@ function Payment() {
                         disabled={isProcessing}
                         className="flex-1 bg-[#1A1A1A] text-white font-bold py-4 px-6 rounded-2xl hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isProcessing ? 'Processing...' : `Pay ${promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}`}
+                        {isProcessing ? 'Processing...' : `Pay ₹${orderDetails?.finalAmount || plan.priceValue}`}
                       </button>
                       <button
                         onClick={() => {

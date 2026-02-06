@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authstore";
 
 // ==========================================
 // 1. DATA SOURCE
@@ -765,6 +766,23 @@ export default function ProjectLearningMap() {
     const [loading, setLoading] = useState(true);
     const [completedCourses, setCompletedCourses] = useState([]);
     const navigate = useNavigate();
+    const { user } = useAuthStore();
+
+    // Check if user has premium access (Pro Access or Premium Plan)
+    const hasPremiumAccess = () => {
+        const planName = user?.subscription?.planName;
+        return planName === "Pro Access" || planName === "Premium Plan";
+    };
+
+    // Determine if project map should be unlocked
+    const isProjectMapUnlocked = () => {
+        // Premium users (Pro Access or Premium Plan) get direct access
+        if (hasPremiumAccess()) {
+            return true;
+        }
+        // Basic/Free users need to complete the course
+        return isCourseCompleted;
+    };
 
     const fetchAllData = useCallback(async () => {
         try {
@@ -969,7 +987,7 @@ export default function ProjectLearningMap() {
                 </div>
             </div>
 
-            {!isCourseCompleted ? (
+            {!isProjectMapUnlocked() ? (
                 <LockedCourseState
                     courseName={selectedCourse?.name || "this course"}
                     courseSlug={selectedCourse?.slug}

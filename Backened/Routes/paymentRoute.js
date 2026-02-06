@@ -36,12 +36,35 @@ router.post("/create-order", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "Invalid planId" });
     }
 
-    let finalAmount = plan.amount;
+    // Fetch user to check for upgrade scenario
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Detect if this is an upgrade
+    const currentPlan = user.subscription.active ? PLANS[user.subscription.planId] : null;
+    const isUpgrade = user.subscription.active &&
+      user.subscription.planId !== planId &&
+      plan.amount > (currentPlan?.amount || 0);
+
+    // Calculate base amount with upgrade discount
+    let baseAmount = plan.amount;
+    let upgradeDiscount = 0;
+    let previousPlanId = null;
+
+    if (isUpgrade) {
+      upgradeDiscount = currentPlan.amount;
+      baseAmount = plan.amount - currentPlan.amount;
+      previousPlanId = user.subscription.planId;
+    }
+
+    let finalAmount = baseAmount;
     let originalAmount = plan.amount;
     let discountAmount = 0;
     let promoCodeData = null;
 
-    // If promo code is provided, validate and apply it
+    // If promo code is provided, validate and apply it on the base amount
     if (promoCode) {
       const { PromoCode } = await import("../Models/PromoCode.js");
 
@@ -73,16 +96,16 @@ router.post("/create-order", verifyToken, async (req, res) => {
         });
       }
 
-      // Check minimum purchase amount
-      if (plan.amount < promo.minPurchaseAmount) {
+      // Check minimum purchase amount (against base amount after upgrade discount)
+      if (baseAmount < promo.minPurchaseAmount) {
         return res.status(400).json({
           message: `Minimum purchase amount of ₹${promo.minPurchaseAmount} required`
         });
       }
 
-      // Calculate discount
-      discountAmount = promo.calculateDiscount(plan.amount);
-      finalAmount = Math.max(0, plan.amount - discountAmount);
+      // Calculate discount on base amount (after upgrade discount)
+      discountAmount = promo.calculateDiscount(baseAmount);
+      finalAmount = Math.max(0, baseAmount - discountAmount);
       promoCodeData = promo.code;
     }
 
@@ -101,6 +124,9 @@ router.post("/create-order", verifyToken, async (req, res) => {
           originalAmount: originalAmount,
           discountAmount: discountAmount,
           promoCode: promoCodeData,
+          upgradeDiscount: upgradeDiscount,
+          isUpgrade: isUpgrade,
+          previousPlanId: previousPlanId,
           provider: "razorpay",
           orderId: order.id,
           status: "pending",
@@ -117,9 +143,11 @@ router.post("/create-order", verifyToken, async (req, res) => {
       planName: plan.name,
       interviews: plan.interviews,
       originalAmount: originalAmount,
+      upgradeDiscount: upgradeDiscount,
       discountAmount: discountAmount,
       finalAmount: finalAmount,
       promoCode: promoCodeData,
+      isUpgrade: isUpgrade,
     });
   } catch (err) {
     console.error(err);
@@ -186,9 +214,36 @@ router.post("/verify", verifyToken, async (req, res) => {
       endDate.setMonth(endDate.getMonth() + 1);
     }
 
-    await User.findOneAndUpdate(
-      { _id: userId, "payments.orderId": razorpay_order_id },
-      {
+    // Check if this is a plan change (upgrade, downgrade, or switch)
+    const currentPlan = user.subscription.planId;
+    const isPlanChange = user.subscription.active && currentPlan !== payment.planId;
+
+    // Determine the number of interviews to grant
+    const interviewsToGrant = payment.promoCode === 'PREP29' ? 2 : plan.interviews;
+
+    // Build the update operation based on plan change status
+    let updateOperation;
+
+    if (isPlanChange) {
+      // Reset credits when switching to a different plan
+      updateOperation = {
+        $set: {
+          "payments.$.paymentId": razorpay_payment_id,
+          "payments.$.signature": razorpay_signature,
+          "payments.$.status": "success",
+          "payments.$.paidAt": new Date(),
+          "subscription.active": true,
+          "subscription.planId": payment.planId,
+          "subscription.planName": plan.name,
+          "subscription.startDate": startDate,
+          "subscription.endDate": endDate,
+          "subscription.interviewsTotal": interviewsToGrant,
+          "subscription.interviewsRemaining": interviewsToGrant,
+        },
+      };
+    } else {
+      // Add credits for new subscriptions or same-plan renewals
+      updateOperation = {
         $set: {
           "payments.$.paymentId": razorpay_payment_id,
           "payments.$.signature": razorpay_signature,
@@ -201,10 +256,15 @@ router.post("/verify", verifyToken, async (req, res) => {
           "subscription.endDate": endDate,
         },
         $inc: {
-          "subscription.interviewsTotal": payment.promoCode === 'PREP29' ? 2 : plan.interviews,
-          "subscription.interviewsRemaining": payment.promoCode === 'PREP29' ? 2 : plan.interviews,
+          "subscription.interviewsTotal": interviewsToGrant,
+          "subscription.interviewsRemaining": interviewsToGrant,
         },
-      }
+      };
+    }
+
+    await User.findOneAndUpdate(
+      { _id: userId, "payments.orderId": razorpay_order_id },
+      updateOperation
     );
 
     // If promo code was used, update promo code usage

@@ -734,35 +734,46 @@ function DynamicModel({ speechText, onSpeechEnd, ...props }) {
   const offsetX = useRef(Math.random() * 0.05);
 
   useFrame((state) => {
-    if (!speechText) return;
-    const t = state.clock.getElapsedTime();
-
+  // Only animate mouth (lip sync), NO head movement
+  if (!speechText || chars.length === 0) {
+    // Reset to neutral position when not speaking
     if (headBoneRef.current) {
-      headBoneRef.current.rotation.y = Math.sin(t * 0.4 + offsetY.current) * 0.02;
-      headBoneRef.current.rotation.x = Math.sin(t * 0.3 + offsetX.current) * 0.04;
+      headBoneRef.current.rotation.y = 0;
+      headBoneRef.current.rotation.x = 0;
     }
-
-    if (meshRef.current?.morphTargetInfluences && chars.length > 0) {
-      const influences = meshRef.current.morphTargetInfluences;
-      influences.fill(0);
-
-      const char = chars[currentCharIndex];
-      if (char) {
-        const viseme = letterToViseme[char] || 'oh';
-        const index = morphKeys[viseme];
-        if (index !== undefined) influences[index] = 0.8;
-      }
+    if (meshRef.current?.morphTargetInfluences) {
+      meshRef.current.morphTargetInfluences.fill(0);
     }
-  });
+    return;
+  }
+
+  // Keep head completely still - remove all head rotation
+  if (headBoneRef.current) {
+    headBoneRef.current.rotation.y = 0;
+    headBoneRef.current.rotation.x = 0;
+  }
+
+  // Only do lip sync animation
+  if (meshRef.current?.morphTargetInfluences) {
+    const influences = meshRef.current.morphTargetInfluences;
+    influences.fill(0);
+    const char = chars[currentCharIndex];
+    if (char) {
+      const viseme = letterToViseme[char] || 'oh';
+      const index = morphKeys[viseme];
+      if (index !== undefined) influences[index] = 0.8;
+    }
+  }
+});
 
   if (!nodes?.rp_carla_rigged_001_geo) return null;
 
   return (
     <group
       {...props}
-      position={[-0.48, -1.3, 3.967]}
-      rotation={[1.9, 0, 0]}
-      scale={0.01}
+      position={[-0.579, -1.68, 3.967]}
+      rotation={[1.86, 0, 0]}
+      scale={0.012}
       dispose={null}
     >
       <skinnedMesh
@@ -2235,18 +2246,22 @@ Key points:
             {/* AI Model Container */}
             <motion.div variants={itemUpVariants} className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-black shadow-2xl border border-gray-800 h-56">
               <Canvas camera={{ position: [0, 0, 5] }}>
-                <ambientLight intensity={0.6} />
-                <Environment preset="studio" />
+                <ambientLight intensity={0.3} />
+                <Environment preset="sunset" />
                 <DynamicModel
                   speechText={currentAiSpeech}
                   onSpeechEnd={handleSpeechEnd}
                 />
               </Canvas>
 
-              <div className="absolute bottom-4 left-4 bg-gradient-to-r from-[#D4F478]/20 to-emerald-500/20 backdrop-blur-lg text-white px-4 py-2 rounded-full text-sm font-medium border border-[#D4F478]/30">
-                <span className="font-bold">Ms. Sira</span>
-                <span className="text-[#D4F478] ml-2">• AI Interviewer</span>
-              </div>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 
+                bg-gradient-to-r from-[#D4F478]/20 to-emerald-500/20 
+                backdrop-blur-lg text-white px-7 py-2 rounded-full 
+                text-sm font-medium border border-[#D4F478]/30">
+  <span className="font-bold">Ms. Sira</span>
+  <span className="text-[#D4F478] ml-2">• AI Interviewer</span>
+</div>
+
             </motion.div>
 
             {/* Chat Container */}

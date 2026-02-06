@@ -225,6 +225,17 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    upgradeDiscount: {
+      type: Number,
+      default: 0, // Amount discounted due to upgrade (previous plan price)
+    },
+    isUpgrade: {
+      type: Boolean,
+      default: false, // Whether this payment is for a plan upgrade
+    },
+    previousPlanId: {
+      type: String, // The plan user is upgrading from
+    },
   },
   { timestamps: true }
 );

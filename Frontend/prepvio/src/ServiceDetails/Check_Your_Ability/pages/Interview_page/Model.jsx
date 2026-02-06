@@ -8,7 +8,7 @@
 //   const { nodes, materials } = useGLTF('/Blink.glb')
 //   const meshRef = useRef()
 //   const headBoneRef = useRef(null)
-  
+
 //   // Blink state
 //   const blinkTimerRef = useRef(0)
 //   const isBlinkingRef = useRef(false)
@@ -79,7 +79,7 @@
 
 //     // Blink logic - trigger blink every 2 seconds
 //     blinkTimerRef.current += delta
-    
+
 //     if (blinkTimerRef.current >= 2 && !isBlinkingRef.current) {
 //       isBlinkingRef.current = true
 //       blinkProgressRef.current = 0
@@ -89,7 +89,7 @@
 //     // Animate blink
 //     if (isBlinkingRef.current) {
 //       blinkProgressRef.current += delta * 10
-      
+
 //       if (blinkProgressRef.current >= 1) {
 //         isBlinkingRef.current = false
 //         blinkProgressRef.current = 0
@@ -114,7 +114,7 @@
 //       if (blinkIndex !== undefined) {
 //         // Apply blink with full strength
 //         influences[blinkIndex] = blinkInfluence
-        
+
 //         // Force update
 //         meshRef.current.morphTargetInfluences = influences
 //       }
@@ -238,9 +238,9 @@ export function Model(props) {
   return (
     <group
       {...props}
-      position={[-0.48, -1.3, 3.967]}
+      position={[-0.48, -1.8, 3.967]}
       rotation={[1.9, 0, 0]}
-      scale={0.01}
+      scale={0.012}
       dispose={null}
     >
       <skinnedMesh
