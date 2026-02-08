@@ -94,10 +94,10 @@ const LoginPage = () => {
           {/* Login Form */}
           <form className="space-y-3" onSubmit={handleLogin}>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 ml-1">Email</label>
+              <label className="text-xs font-bold text-gray-700 ml-1">Email or User ID</label>
               <input
-                type="email"
-                placeholder="name@work.com"
+                type="text"
+                placeholder="name@work.com or PRVOO1"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white/50 border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-400 font-medium text-sm"

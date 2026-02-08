@@ -37,9 +37,20 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null, message: null });
         try {
             const response = await axios.post(`${API_URL}/login`, { email, password });
-            // ✅ Store token in localStorage for socket connection
+
+            if (response.data.isAdmin && response.data.redirectUrl) {
+                // Redirect directly - Admin App handles its own 'admin_auth_token' from URL
+                const redirectUrl = new URL(response.data.redirectUrl);
+                if (response.data.token) {
+                    redirectUrl.searchParams.set("token", response.data.token);
+                }
+                window.location.href = redirectUrl.toString();
+                return;
+            }
+
+            // ✅ Store user-specific token
             if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("USER_AUTH_TOKEN", response.data.token);
             }
             set({
                 isAuthenticated: true,
@@ -60,8 +71,8 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null });
         try {
             await axios.post(`${API_URL}/logout`);
-            // ✅ Clear token from localStorage on logout
-            localStorage.removeItem("token");
+            // ✅ Clear local user session
+            localStorage.removeItem("USER_AUTH_TOKEN");
             set({
                 user: null,
                 isAuthenticated: false,
@@ -78,9 +89,8 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await axios.post(`${API_URL}/verify-email`, { code });
-            // ✅ Store token in localStorage for socket connection
             if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("USER_AUTH_TOKEN", response.data.token);
             }
             set({
                 user: response.data.user,

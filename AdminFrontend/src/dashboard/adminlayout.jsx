@@ -1,24 +1,34 @@
 import React from "react";
-import Sidebar from "./adminsidebar";
+import Sidebar from "./adminsidebar"; // Ensure case matches
+import AdminHeader from "./AdminHeader";
 import { Outlet } from "react-router-dom";
-
+import { Toaster } from 'react-hot-toast';
 
 const Layout = () => {
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+      <Toaster position="top-right" reverseOrder={false} />
+
+      {/* Sidebar - Fixed */}
       <Sidebar />
 
-      {/* Main content */}
-      {/* This div now correctly takes up the remaining space and handles scrolling */}
-      <div className="flex-1 overflow-y-auto">
-        <Outlet /> {/* Pages render here */}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Header - Fixed Top */}
+        <AdminHeader />
+
+        {/* Scrollable Page Content */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
 };
 
 export default Layout;
+
+
 
 
 

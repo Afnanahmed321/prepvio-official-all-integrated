@@ -30,6 +30,8 @@ import AptitudeTestAnalysis from "./Dashboard/AptitudeTestAnalysis.jsx";
 import LearnAndPerform from "./ServiceDetails/Learn and perfrom/LearnAndPerfrom.jsx";
 import Channels from "./ServiceDetails/Learn and perfrom/Channels.jsx";
 import VideoPlayer from "./ServiceDetails/Learn and perfrom/VideoPlayer.jsx";
+import Tickets from "./Dashboard/Tickets.jsx";
+import TicketDetail from "./Dashboard/TicketDetails.jsx";
 
 import SelectRolesAndCompany from "./ServiceDetails/Check_Your_Ability/pages/selecting_roles_and_typeofcompany/SelectRolesAndCompany.jsx";
 import Rounds from "./ServiceDetails/Check_Your_Ability/pages/selecting_roles_and_typeofcompany/Rounds.jsx";
@@ -167,6 +169,8 @@ function App() {
 					<Route path="interview-analysis" element={<Interview />} />
 					<Route path="pricing" element={<Payment />} />
 					<Route path="messages/inbox" element={<Message />} />
+					<Route path="tickets" element={<Tickets />} />
+					<Route path="tickets/:ticketId" element={<TicketDetail />} />
 					<Route path="help/faq" element={<FAQs />} />
 					<Route path="feedback" element={<Feedback />} />
 					<Route path="aptitude-test-analysis" element={<AptitudeTestAnalysis />} />

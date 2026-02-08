@@ -3,11 +3,24 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from "react-router-dom";
+import axios from 'axios';
+
+// Global Axios Configuration
+axios.defaults.withCredentials = true;
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 )

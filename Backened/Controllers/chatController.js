@@ -61,7 +61,18 @@ export const getMessages = async (req, res) => {
         const userId = req.user._id;
         const isAdmin = req.user.role?.toLowerCase() === 'admin';
 
-        const targetUserId = isAdmin ? req.params.userId : userId;
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+        }
+
+        // For admin, check if viewing a specific user's conversation via query param
+        // If not admin, or no query param, default to current user's conversation
+        const targetUserId = (isAdmin && req.query.userId) ? req.query.userId : userId;
+
+        if (!targetUserId) {
+            return res.status(400).json({ success: false, message: 'Effective User ID is required' });
+        }
+
         const conversationId = `conv_${targetUserId.toString()}`;
 
         const messages = await Message.find({ conversationId })

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Home, 
-  ChevronRight, 
+import {
+  Home,
+  ChevronRight,
   MessageSquare,
   Calendar,
   BarChart2,
@@ -11,7 +11,7 @@ import {
   Bell,
   MoreVertical,
   ChevronDown,
-  DollarSign,
+  IndianRupee,
   CheckCircle,
   XCircle,
   PieChart
@@ -357,9 +357,9 @@ const Notifications = () => {
     { text: "Broly just set up annual membership...", time: "Today, 10:00 AM", icon: <CheckCircle className="w-5 h-5 text-green-500" /> },
     { text: "Admire just set up membership planning", time: "Yesterday, 12:00 PM", icon: <CheckCircle className="w-5 h-5 text-green-500" /> },
     { text: "Nia just canceled 2-month membership", time: "20 Jul, 12:00 PM", icon: <XCircle className="w-5 h-5 text-red-500" /> },
-    { text: "Colleen just paid 1-month membership", time: "20 Jul, 10:00 PM", icon: <DollarSign className="w-5 h-5 text-blue-500" /> },
+    { text: "Colleen just paid 1-month membership", time: "20 Jul, 10:00 PM", icon: <IndianRupee className="w-5 h-5 text-blue-500" /> },
     { text: "Ida just canceled 2-month membership", time: "19 Jul, 12:00 PM", icon: <XCircle className="w-5 h-5 text-red-500" /> },
-    { text: "Colleen just paid 1-month membership", time: "19 Jul, 10:00 AM", icon: <DollarSign className="w-5 h-5 text-blue-500" /> },
+    { text: "Colleen just paid 1-month membership", time: "19 Jul, 10:00 AM", icon: <IndianRupee className="w-5 h-5 text-blue-500" /> },
   ];
   return (
     <GlassCard className="col-span-1 p-5">
@@ -404,7 +404,7 @@ export default function AnalyticsDashboard() {
           <StatCard title="Renewals" value="1,563" date="May 21 - June 21" icon={<TrendingUp className="w-6 h-6 text-green-700" />} iconBgColor="bg-green-100" />
           <StatCard title="Retention" value="40.6%" date="May 21 - June 21" icon={<Calendar className="w-6 h-6 text-yellow-700" />} iconBgColor="bg-yellow-100" />
           <StatCard title="Cancellations" value="40.6%" date="May 21 - June 21" icon={<TrendingDown className="w-6 h-6 text-red-700" />} iconBgColor="bg-red-100" />
-          
+
           {/* Main Charts Row */}
           <RevenueChart />
           <CalendarSchedule />
@@ -418,10 +418,10 @@ export default function AnalyticsDashboard() {
           <Notifications />
         </div>
       </div>
-      
+
       {/* Floating Action Button */}
       <button className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-all">
-          <MessageSquare className="w-6 h-6" />
+        <MessageSquare className="w-6 h-6" />
       </button>
     </div>
   );

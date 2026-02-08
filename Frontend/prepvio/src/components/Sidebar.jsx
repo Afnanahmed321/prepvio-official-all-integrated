@@ -18,6 +18,7 @@ import {
   BookOpen,
   HelpCircle,
   Rocket,
+  Ticket,
   X // Added X for mobile close
 } from "lucide-react";
 
@@ -31,8 +32,8 @@ const SidebarLink = ({ icon: Icon, label, to, badge, showDot, collapsed }) => {
     <Link to={to} className="block w-full">
       <div
         className={`relative flex items-center w-full gap-4 py-3.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 group overflow-hidden ${isActive
-            ? "bg-[#1A1A1A] text-white shadow-lg shadow-gray-200"
-            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+          ? "bg-[#1A1A1A] text-white shadow-lg shadow-gray-200"
+          : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
           }`}
       >
         <Icon
@@ -62,8 +63,8 @@ const SidebarLink = ({ icon: Icon, label, to, badge, showDot, collapsed }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             className={`w-2 h-2 rounded-full ${isActive
-                ? "bg-[#D4F478]"
-                : "bg-green-500 animate-pulse"
+              ? "bg-[#D4F478]"
+              : "bg-green-500 animate-pulse"
               }`}
           />
         )}
@@ -74,8 +75,8 @@ const SidebarLink = ({ icon: Icon, label, to, badge, showDot, collapsed }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive
-                ? "bg-[#D4F478] text-black"
-                : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+              ? "bg-[#D4F478] text-black"
+              : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
               }`}
           >
             {badge}
@@ -111,8 +112,8 @@ const DropdownMenu = ({ title, icon: Icon, children, collapsed, setSidebarCollap
       <button
         onClick={handleToggle}
         className={`w-full flex items-center justify-between py-3.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 group overflow-hidden ${isOpen || hasActiveChild
-            ? "bg-white border border-gray-100 shadow-sm text-gray-900"
-            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+          ? "bg-white border border-gray-100 shadow-sm text-gray-900"
+          : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
           }`}
       >
         <div className="flex items-center gap-4">
@@ -273,27 +274,27 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
         </button>
 
         {/* Branding Header */}
-<div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} transition-all duration-300`}>
-  <Link to="/">
-    <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-black/10">
-      <img src="/newuilogo1.png" alt="Icon" className="w-full h-full object-cover" />
-    </div>
-  </Link>
-  <AnimatePresence>
-    {!isCollapsed && (
-      <motion.h1
-        initial={{ opacity: 0, width: 0 }}
-        animate={{ opacity: 1, width: "auto" }}
-        exit={{ opacity: 0, width: 0 }}
-        className="text-xl font-bold tracking-tight text-gray-900 whitespace-nowrap overflow-hidden"
-      >
-        <Link to="/">
-          <img src="/prepvio (1).png" alt="PrepVio" className="h-9 w-auto object-contain" />
-        </Link>
-      </motion.h1>
-    )}
-  </AnimatePresence>
-</div>
+        <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} transition-all duration-300`}>
+          <Link to="/">
+            <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center overflow-hidden shadow-lg shadow-black/10">
+              <img src="/newuilogo1.png" alt="Icon" className="w-full h-full object-cover" />
+            </div>
+          </Link>
+          <AnimatePresence>
+            {!isCollapsed && (
+              <motion.h1
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="text-xl font-bold tracking-tight text-gray-900 whitespace-nowrap overflow-hidden"
+              >
+                <Link to="/">
+                  <img src="/prepvio (1).png" alt="PrepVio" className="h-9 w-auto object-contain" />
+                </Link>
+              </motion.h1>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Menu Items */}
         <div className="px-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden">
@@ -318,6 +319,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           <SidebarLink icon={CreditCard} label="Pricing" to="/dashboard/pricing" collapsed={isCollapsed} />
 
           <DropdownMenu title="Help Desk" icon={LifeBuoy} collapsed={isCollapsed} setSidebarCollapsed={setIsCollapsed}>
+            <SidebarLink icon={Ticket} label="My Tickets" to="/dashboard/tickets" collapsed={isCollapsed} />
             <SidebarLink icon={LifeBuoy} label="Inbox" to="/dashboard/messages/inbox" collapsed={isCollapsed} />
             <SidebarLink icon={HelpCircle} label="FAQs" to="/dashboard/help/faq" collapsed={isCollapsed} />
           </DropdownMenu>

@@ -25,7 +25,7 @@ const socket = io("http://localhost:5000", {
 export const connectSocket = (userId) => {
   // Try to get token from multiple sources
   // 1. First check localStorage (set during login)
-  let token = localStorage.getItem("token");
+  let token = localStorage.getItem("USER_AUTH_TOKEN");
 
   // 2. If not in localStorage, try to extract from cookie (for httpOnly fallback)
   if (!token) {

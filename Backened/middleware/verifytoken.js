@@ -1,39 +1,33 @@
-// import jwt from "jsonwebtoken";
-
-// export const verifyToken = (req, res, next) => {
-//   const token = req.cookies.token;
-
-//   if (!token) {
-//     return res
-//       .status(401)
-//       .json({ success: false, message: "Unauthorized - no token provided" });
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-//     if (!decoded || !decoded.id) {
-//       return res
-//         .status(401)
-//         .json({ success: false, message: "Unauthorized - invalid token" });
-//     }
-
-//     req.userId = decoded.id; // ✅ FIXED
-//     next();
-//   } catch (error) {
-//     console.log("Error in verifyToken:", error);
-//     return res
-//       .status(401)
-//       .json({ success: false, message: "Invalid or expired token" });
-//   }
-// };
-
 import jwt from "jsonwebtoken";
-import { User } from "../models/User.js";
+import { User } from "../Models/User.js";
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    let token;
+
+    // 1️⃣ CHECK HEADER FIRST (Priority for Admin/API calls)
+    if (req.headers.authorization?.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // 2️⃣ STRICT PORT-BINDING FOR COOKIES
+    // Detect origin to determine which cookie is allowed
+    const origin = req.headers.origin || req.headers.referer || "";
+    const isAdminApp = origin.includes(":5174");
+    const isUserApp = origin.includes(":5173");
+
+    if (!token) {
+      if (isAdminApp) {
+        // Port 5174 ONLY accepts admin_token
+        token = req.cookies?.admin_token;
+      } else if (isUserApp) {
+        // Port 5173 ONLY accepts user_token
+        token = req.cookies?.user_token;
+      } else {
+        // Fallback for direct browser access or other ports
+        token = req.cookies?.admin_token || req.cookies?.user_token || req.cookies?.token;
+      }
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -49,6 +43,13 @@ export const verifyToken = async (req, res, next) => {
         success: false,
         message: "Unauthorized - invalid token",
       });
+    }
+
+    // ✅ ADMIN BYPASS: If it's the admin user, skip database lookup
+    if (decoded.id === "admin" && decoded.isAdmin) {
+      req.userId = "admin";
+      req.isAdmin = true;
+      return next();
     }
 
     const user = await User.findById(decoded.id).select("_id");
@@ -70,3 +71,4 @@ export const verifyToken = async (req, res, next) => {
     });
   }
 };
+
