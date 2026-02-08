@@ -13,7 +13,7 @@ import {
   MonitorPlay,
   AlertCircle,
   Sparkles,
-  Rocket,  
+  Rocket,
   ChevronRight,
   LayoutDashboard,
   LogOut
@@ -98,19 +98,19 @@ const ChannelCard = ({ name, imageUrl, selectedVideoId, channelId, courseId }) =
         <div className="min-w-0 flex-1">
           <div className="text-xl font-black text-gray-900 line-clamp-1">{name || "Channel Name"}</div>
           <div className="mt-1 text-sm font-bold text-indigo-600 cursor-pointer hover:underline flex items-center gap-3">
-  <div 
-    onClick={openNewGoogleDoc}
-    className="flex items-center gap-1"
-  >
-    <Layers className="w-3 h-3" /> Create New Notes
-  </div>
-  <div 
-    onClick={() => window.location.href = '/dashboard/learning-map'}
-    className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700"
-  >
-    <Rocket className="w-3 h-3" /> Projects
-  </div>
-</div>
+            <div
+              onClick={openNewGoogleDoc}
+              className="flex items-center gap-1"
+            >
+              <Layers className="w-3 h-3" /> Create New Notes
+            </div>
+            <div
+              onClick={() => window.location.href = '/dashboard/learning-map'}
+              className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700"
+            >
+              <Rocket className="w-3 h-3" /> Projects
+            </div>
+          </div>
         </div>
       </div>
 
@@ -265,16 +265,16 @@ const PlayListPlayer = ({ video, onPlayerReady, onStateChange, onWatchLater, isS
 
   const title = video?.snippet?.title || "";
 
-  // useEffect(() => {
-  //   const disableContextMenu = (e) => e.preventDefault();
-  //   const disableSelect = (e) => e.preventDefault();
-  //   document.addEventListener("contextmenu", disableContextMenu);
-  //   document.addEventListener("selectstart", disableSelect);
-  //   return () => {
-  //     document.removeEventListener("contextmenu", disableContextMenu);
-  //     document.removeEventListener("selectstart", disableSelect);
-  //   };
-  // }, []);
+  useEffect(() => {
+    const disableContextMenu = (e) => e.preventDefault();
+    const disableSelect = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", disableContextMenu);
+    document.addEventListener("selectstart", disableSelect);
+    return () => {
+      document.removeEventListener("contextmenu", disableContextMenu);
+      document.removeEventListener("selectstart", disableSelect);
+    };
+  }, []);
 
   if (!videoId) {
     return (
@@ -411,84 +411,99 @@ const QuizModal = ({ quiz, onAnswer, onClose }) => {
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="relative bg-white rounded-[3rem] p-8 md:p-12 w-full max-w-lg shadow-2xl overflow-hidden"
+        className="relative bg-white rounded-[2.5rem] p-8 md:p-12 w-full max-w-lg shadow-2xl overflow-hidden"
       >
-        {/* Top Gradient Bar */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4F478]/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-200/30 rounded-full blur-[80px] pointer-events-none" />
 
-        <div className="flex justify-between items-start mb-8">
-          <div>
+        {/* Close button - Only visible after answering */}
+        {selectedAnswer && (
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors z-[10]"
+          >
+            <XCircle className="w-5 h-5 text-gray-600" />
+          </button>
+        )}
+
+        <div className="relative z-10">
+          {/* Icon Header */}
+          <div className="w-16 h-16 rounded-2xl bg-[#D4F478] flex items-center justify-center mb-6 shadow-lg shadow-[#D4F478]/20">
+            <Sparkles className="w-8 h-8 text-[#1A1A1A]" />
+          </div>
+
+          <div className="mb-8">
             <motion.span
               initial={{ x: -10, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-3 border border-indigo-100"
+              className="inline-block px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-3"
             >
-              <Sparkles className="w-3 h-3 fill-current" /> Pop Quiz
+              Knowledge Check
             </motion.span>
-            <h2 className="text-3xl font-black text-gray-900 leading-none tracking-tight">Test Knowledge</h2>
+            <h2 className="text-3xl font-black text-[#1A1A1A] leading-tight tracking-tight">Test Your Knowledge</h2>
           </div>
+
+          <div className="mb-8 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 backdrop-blur-sm">
+            <p className="text-[#1A1A1A] text-lg font-bold leading-relaxed">
+              {quiz.question}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {quiz.options.map((option, i) => {
+              let styleClass = "bg-white border-2 border-gray-100 text-gray-700 hover:border-[#D4F478] hover:bg-[#D4F478]/5";
+              let icon = <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#D4F478]" />;
+
+              if (selectedAnswer) {
+                if (option === quiz.correctAnswer) {
+                  styleClass = "bg-[#D4F478] border-[#D4F478] text-[#1A1A1A] shadow-lg shadow-[#D4F478]/20";
+                  icon = <CheckCircle className="w-5 h-5 text-[#1A1A1A]" />;
+                } else if (option === selectedAnswer && option !== quiz.correctAnswer) {
+                  styleClass = "bg-rose-50 border-rose-500 text-rose-800 shadow-sm";
+                  icon = <XCircle className="w-5 h-5 text-rose-600" />;
+                } else {
+                  styleClass = "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed opacity-50";
+                  icon = null;
+                }
+              }
+
+              return (
+                <button
+                  key={i}
+                  className={`group w-full py-4 px-6 rounded-2xl font-bold text-left transition-all duration-200 flex items-center justify-between active:scale-[0.98] ${styleClass}`}
+                  onClick={() => handleButtonClick(option)}
+                  disabled={!!selectedAnswer}
+                >
+                  <span className="text-base">{option}</span>
+                  {icon}
+                </button>
+              );
+            })}
+          </div>
+
           {selectedAnswer && (
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors text-gray-500 hover:text-gray-900"
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-8 p-5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-sm ${selectedAnswer === quiz.correctAnswer
+                ? 'bg-[#D4F478]/20 text-[#1A1A1A] border border-[#D4F478]/30'
+                : 'bg-rose-100 text-rose-800 border border-rose-200'}`}
             >
-              <XCircle className="w-6 h-6" />
-            </button>
+              {selectedAnswer === quiz.correctAnswer ? (
+                <>
+                  <Sparkles className="w-4 h-4 text-[#1A1A1A] animate-pulse" />
+                  Great job! Resuming lesson...
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                  Incorrect. Correct: <span className="underline decoration-2 ml-1">{quiz.correctAnswer}</span>
+                </>
+              )}
+            </motion.div>
           )}
         </div>
-
-        <div className="mb-8 bg-gray-50 p-6 rounded-[1.5rem] border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white rounded-bl-[4rem] pointer-events-none opacity-50" />
-          <p className="text-gray-700 text-lg font-bold leading-relaxed relative z-10">
-            {quiz.question}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {quiz.options.map((option, i) => {
-            let styleClass = "bg-white border-2 border-gray-100 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-900";
-            let icon = <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-300" />;
-
-            if (selectedAnswer) {
-              if (option === quiz.correctAnswer) {
-                styleClass = "bg-green-50 border-2 border-green-500 text-green-800 shadow-sm";
-                icon = <CheckCircle className="w-5 h-5 text-green-600 fill-green-100" />;
-              } else if (option === selectedAnswer && option !== quiz.correctAnswer) {
-                styleClass = "bg-red-50 border-2 border-red-500 text-red-800 shadow-sm";
-                icon = <XCircle className="w-5 h-5 text-red-600 fill-red-100" />;
-              } else {
-                styleClass = "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed opacity-50";
-                icon = null;
-              }
-            }
-
-            return (
-              <button
-                key={i}
-                className={`group w-full py-4 px-6 rounded-2xl font-bold text-left transition-all duration-200 flex items-center justify-between active:scale-[0.98] ${styleClass}`}
-                onClick={() => handleButtonClick(option)}
-                disabled={!!selectedAnswer}
-              >
-                <span>{option}</span>
-                {icon}
-              </button>
-            );
-          })}
-        </div>
-
-        {selectedAnswer && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`mt-6 text-center p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 ${selectedAnswer === quiz.correctAnswer ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-          >
-            {selectedAnswer === quiz.correctAnswer ? (
-              <>🎉 Correct! Resuming video...</>
-            ) : (
-              <>Incorrect. The answer was: <span className="underline decoration-2">{quiz.correctAnswer}</span></>
-            )}
-          </motion.div>
-        )}
       </motion.div>
     </div>
   );

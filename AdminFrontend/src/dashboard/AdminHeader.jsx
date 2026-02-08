@@ -148,12 +148,12 @@ const AdminHeader = () => {
                             {user?.avatarUrl ? (
                                 <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
-                                <span>{user?.name?.charAt(0) || "A"}</span>
+                                <span>{user?.name?.charAt(0) || <User className="w-5 h-5" />}</span>
                             )}
                         </div>
                         <div className="hidden sm:block text-left">
-                            <p className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{user?.name || "Admin User"}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user?.role || "Admin"}</p>
+                            <p className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{user?.name || "Loading..."}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user?.role || "..."}</p>
                         </div>
                         <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`} />
                     </button>
@@ -173,8 +173,8 @@ const AdminHeader = () => {
                                             )}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-800">{user?.name || "Admin User"}</p>
-                                            <p className="text-xs text-slate-500 text-ellipsis overflow-hidden w-32 whitespace-nowrap">{user?.email || "admin@example.com"}</p>
+                                            <p className="font-bold text-slate-800">{user?.name || "Loading..."}</p>
+                                            <p className="text-xs text-slate-500 text-ellipsis overflow-hidden w-32 whitespace-nowrap">{user?.email || "..."}</p>
                                         </div>
                                     </div>
                                 </div>

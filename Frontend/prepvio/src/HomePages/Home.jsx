@@ -433,6 +433,8 @@ const PricingSection = () => {
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const { refreshUser, isAuthenticated, user } = useAuthStore();
 
   // ✅ Fetch current subscription
@@ -478,6 +480,21 @@ const PricingSection = () => {
           code: data.promoCode.code,
           description: data.promoCode.description,
         });
+
+        // Refresh order details with promo applied
+        try {
+          const orderData = await axios.post("/api/payment/create-order", { planId, promoCode });
+          setOrderDetails({
+            originalAmount: orderData.data.originalAmount,
+            upgradeDiscount: orderData.data.upgradeDiscount || 0,
+            discountAmount: orderData.data.discountAmount || 0,
+            finalAmount: orderData.data.finalAmount,
+            isUpgrade: orderData.data.isUpgrade || false,
+            promoCode: orderData.data.promoCode
+          });
+        } catch (err) {
+          console.error("Failed to refresh order details:", err);
+        }
       }
     } catch (err) {
       setPromoValidation({
@@ -582,7 +599,7 @@ const PricingSection = () => {
     }
   };
 
-  const handlePlanSelect = (planId) => {
+  const handlePlanSelect = async (planId) => {
     if (!isAuthenticated) {
       setModalType('login');
       setShowAuthModal(true);
@@ -595,10 +612,34 @@ const PricingSection = () => {
       return;
     }
 
+    // Prevent multiple clicks
+    if (isCalculatingPrice || isProcessing) return;
+
+    setIsCalculatingPrice(true);
     setSelectedPlan(planId);
-    setShowPromoInput(true);
     setPromoCode("");
     setPromoValidation(null);
+    setOrderDetails(null);
+
+    // Fetch order details to show upgrade pricing
+    try {
+      const { data } = await axios.post("/api/payment/create-order", { planId });
+      setOrderDetails({
+        originalAmount: data.originalAmount,
+        upgradeDiscount: data.upgradeDiscount || 0,
+        discountAmount: data.discountAmount || 0,
+        finalAmount: data.finalAmount,
+        isUpgrade: data.isUpgrade || false,
+        promoCode: data.promoCode
+      });
+      setShowPromoInput(true);
+    } catch (err) {
+      console.error("Failed to fetch order details:", err);
+      alert("Failed to calculate plan price. Please try again.");
+      setSelectedPlan(null);
+    } finally {
+      setIsCalculatingPrice(false);
+    }
   };
 
   const proceedToPayment = () => {
@@ -678,11 +719,36 @@ const PricingSection = () => {
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${plan.color}`}>
                     <Icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-2xl font-bold">{plan.name}</h3>
+                    {(() => {
+                      const tierOrder = { 'monthly': 0, 'premium': 1, 'yearly': 2 };
+                      const currentTier = currentPlan?.active ? tierOrder[currentPlan.planId] : -1;
+                      const planTier = tierOrder[plan.id];
+                      if (currentPlan?.active && planTier > currentTier) {
+                        return (
+                          <span className="text-xs font-black bg-blue-100 text-blue-700 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                            Upgrade
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
                   <p className={`text-sm font-medium mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {plan.description}
                   </p>
                   <div className="flex items-baseline gap-1">
+                    {(() => {
+                      const tierOrder = { 'monthly': 0, 'premium': 1, 'yearly': 2 };
+                      const currentTier = currentPlan?.active ? tierOrder[currentPlan.planId] : -1;
+                      const planTier = tierOrder[plan.id];
+                      if (currentPlan?.active && planTier > currentTier) {
+                        // If it's an upgrade, we could show a strike-through original if we had it, 
+                        // but for now let's just keep it clean or show a hint.
+                        // The modal will show the exact calculation.
+                      }
+                    })()}
                     <span className="text-5xl font-black tracking-tight">{plan.price}</span>
                     <span className={`text-lg font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                       {plan.duration}
@@ -738,7 +804,7 @@ const PricingSection = () => {
                       <CheckCircle2 className="w-5 h-5" />
                       Current Plan
                     </>
-                  ) : isProcessing && selectedPlan === plan.id ? (
+                  ) : (isProcessing || isCalculatingPrice) && selectedPlan === plan.id ? (
                     <>Processing...</>
                   ) : (
                     <>
@@ -782,22 +848,65 @@ const PricingSection = () => {
                 return (
                   <>
                     <div className="text-center mb-6">
-                      <h3 className="text-2xl font-black text-gray-900 mb-2">
+                      <h3 className="text-2xl font-black text-gray-900 mb-2 flex items-center justify-center gap-2">
                         {plan.name}
+                        {orderDetails?.isUpgrade && (
+                          <span className="text-[10px] bg-[#EEF2FF] text-[#4F46E5] px-3 py-1 rounded-full font-black uppercase tracking-widest shadow-sm">
+                            Upgrade
+                          </span>
+                        )}
                       </h3>
                       <p className="text-4xl font-black text-gray-900">
-                        {promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}
+                        ₹{orderDetails?.finalAmount || plan.priceValue}
                       </p>
-                      {promoValidation?.valid && (
+                      {orderDetails && (orderDetails.upgradeDiscount > 0 || orderDetails.discountAmount > 0) && (
                         <p className="text-sm text-gray-500 line-through">
-                          Original: {plan.price}
+                          Original: ₹{orderDetails.originalAmount}
                         </p>
                       )}
                     </div>
 
-                    <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-dashed border-green-300">
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        🎁 Have a promo code?
+                    {/* Price Breakdown - Always Visible if Order Details exist */}
+                    {orderDetails && (
+                      <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+                        <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-gray-600" />
+                          Price Summary
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between text-gray-600">
+                            <span>Plan Price:</span>
+                            <span className="font-bold">₹{orderDetails.originalAmount}</span>
+                          </div>
+
+                          {orderDetails.isUpgrade && (
+                            <div className="flex justify-between text-[#4F46E5] bg-[#EEF2FF] p-2.5 rounded-xl">
+                              <span className="flex items-center gap-1 font-bold"><Zap className="w-3.5 h-3.5" /> Upgrade Discount:</span>
+                              <span className="font-black">-₹{orderDetails.upgradeDiscount}</span>
+                            </div>
+                          )}
+
+                          {orderDetails.discountAmount > 0 && (
+                            <div className="flex justify-between text-green-700 bg-green-50 p-2 rounded-lg">
+                              <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Promo Applied:</span>
+                              <span className="font-bold">-₹{orderDetails.discountAmount}</span>
+                            </div>
+                          )}
+
+                          <div className="h-px bg-gray-200 my-2"></div>
+                          <div className="flex justify-between items-center text-gray-900 font-extrabold text-xl pt-1">
+                            <span>Total To Pay:</span>
+                            <span className="text-[#22c55e]">₹{orderDetails.finalAmount}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mb-6 p-5 bg-[#F9FAFB] rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-50 to-transparent rounded-full blur-2xl opacity-50" />
+
+                      <label className="block text-sm font-black text-gray-700 mb-4 flex items-center gap-2">
+                        <span className="text-lg">🎁</span> Have a promo code?
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -814,12 +923,12 @@ const PricingSection = () => {
                         <button
                           onClick={() => validatePromoCode(selectedPlan)}
                           disabled={!promoCode.trim() || isValidating}
-                          className={`px-6 py-3 rounded-xl font-bold transition-all ${promoCode.trim()
-                            ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          className={`px-8 py-3 rounded-2xl font-black transition-all active:scale-95 ${promoCode.trim()
+                            ? 'bg-[#1A1A1A] text-white hover:bg-black shadow-md'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}
                         >
-                          {isValidating ? 'Checking...' : 'Apply'}
+                          {isValidating ? '...' : 'Apply'}
                         </button>
                       </div>
 
@@ -866,9 +975,9 @@ const PricingSection = () => {
                       <button
                         onClick={proceedToPayment}
                         disabled={isProcessing}
-                        className="flex-1 bg-[#1A1A1A] text-white font-bold py-4 px-6 rounded-2xl hover:bg-black transition-all disabled:opacity-50"
+                        className="flex-1 bg-[#1A1A1A] text-white font-black py-4 rounded-xl hover:bg-black transition-all shadow-lg active:scale-95 disabled:opacity-50"
                       >
-                        {isProcessing ? 'Processing...' : `Pay ${promoValidation?.valid ? `₹${promoValidation.finalAmount}` : plan.price}`}
+                        {isProcessing ? "Processing..." : `Pay ₹${orderDetails?.finalAmount || plan.priceValue}`}
                       </button>
                       <button
                         onClick={() => {

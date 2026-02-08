@@ -272,12 +272,16 @@ const InterviewAnalysisPage = () => {
     // ✅ Use the interview's session plan, not the user's current plan
     const sessionPlanId = interview.planId || 'free';
     
-    // ✅ Free plan gets FULL ACCESS, Basic plan is BLOCKED from replay
-    const isBasicPlan = sessionPlanId === 'monthly';
-    const isFreePlan = sessionPlanId === 'free';
+    // ✅ Check current user's plan to allow override
+    const currentUserPlan = user?.subscription?.planId || 'free';
+    const hasProAccess = currentUserPlan === 'premium' || currentUserPlan === 'yearly';
 
-    // Block Basic plan from accessing interview replay (they only get PDF)
-    if (isBasicPlan) {
+    // ✅ Free plan gets FULL ACCESS, Basic plan is BLOCKED from replay
+    const isBasicSession = sessionPlanId === 'monthly';
+    
+    // Block Basic plan sessions from accessing interview replay (they only get PDF)
+    // UNLESS the current user has Pro Access or higher
+    if (isBasicSession && !hasProAccess) {
       setShowUpgradeModal(true);
       return;
     }

@@ -31,7 +31,7 @@ export const connectSocket = (userId) => {
   if (!token) {
     token = document.cookie
       .split("; ")
-      .find((row) => row.startsWith("token="))
+      .find((row) => row.startsWith("user_token="))
       ?.split("=")[1];
   }
 

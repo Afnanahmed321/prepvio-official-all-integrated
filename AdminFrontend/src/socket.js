@@ -12,7 +12,7 @@ const socket = io(SOCKET_URL, {
     withCredentials: true,
     autoConnect: true,
     auth: {
-        token: getCookie('token')
+        token: getCookie('admin_token')
     }
 });
 

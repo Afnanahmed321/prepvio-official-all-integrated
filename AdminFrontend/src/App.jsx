@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
+import { Routes, Route, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 
 // Layout
 import Layout from "./dashboard/adminlayout.jsx";
@@ -71,9 +71,22 @@ export default function App() {
     }
   }, [searchParams, setSearchParams]);
 
+  // Admin Route Guard
+  const isAuthenticated = !!localStorage.getItem("ADMIN_AUTH_TOKEN") || document.cookie.includes("admin_token");
+
+  if (!isAuthenticated && window.location.pathname !== "/login") {
+    // If not authenticated, we can either redirect to user login or just show a message
+    // Since the main app handles login, redirecting to :5173/login is best
+    // But for now, let's just allow it if there's no way to verify role client-side without a fetch
+    // Actually, the Backend now returns 401 if token is missing or not admin.
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route
+        path="/"
+        element={isAuthenticated ? <Layout /> : <Navigate to="http://localhost:5173/login" replace />}
+      >
         {/* Dashboard */}
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />

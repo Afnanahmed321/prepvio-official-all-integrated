@@ -11,21 +11,20 @@ export const verifyToken = async (req, res, next) => {
     }
 
     // 2️⃣ STRICT PORT-BINDING FOR COOKIES
-    // Detect origin to determine which cookie is allowed
     const origin = req.headers.origin || req.headers.referer || "";
     const isAdminApp = origin.includes(":5174");
     const isUserApp = origin.includes(":5173");
 
     if (!token) {
       if (isAdminApp) {
-        // Port 5174 ONLY accepts admin_token
+        // Port 5174: Prioritize admin_token
         token = req.cookies?.admin_token;
       } else if (isUserApp) {
-        // Port 5173 ONLY accepts user_token
+        // Port 5173: Prioritize user_token
         token = req.cookies?.user_token;
       } else {
-        // Fallback for direct browser access or other ports
-        token = req.cookies?.admin_token || req.cookies?.user_token || req.cookies?.token;
+        // Generic fallback: Try both but be explicit
+        token = req.cookies?.user_token || req.cookies?.admin_token || req.cookies?.token;
       }
     }
 
@@ -36,7 +35,9 @@ export const verifyToken = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || "mydevsecret";
+    console.log("DEBUG: Main verifyToken - Using secret:", secret === "mydevsecret" ? "FALLBACK" : "ENV");
+    const decoded = jwt.verify(token, secret);
 
     if (!decoded?.id) {
       return res.status(401).json({

@@ -648,17 +648,22 @@ const InterviewPreview = () => {
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
                                             onClick={() => {
-                                                // ✅ Use the plan from the interview session, not current user plan
+                                                // ✅ Use the plan from the interview session
                                                 const sessionPlanId = interviewData.planId || 'free';
                                                 
-                                                // ✅ Free plan gets FULL ACCESS, Basic plan is BLOCKED
-                                                const isBasicPlan = sessionPlanId === 'monthly';
+                                                // ✅ Check current user's plan for override
+                                                const currentUserPlan = user?.subscription?.planId || 'free';
+                                                const isUpgradedUser = currentUserPlan === 'yearly';
+
+                                                // ✅ Block Basic (monthly) and Pro Access (premium) plans
+                                                // UNLESS the user has upgraded to the Premium Plan (yearly)
+                                                const isRestrictedSession = sessionPlanId === 'monthly' || sessionPlanId === 'premium';
                                                 
-                                                // Block Basic plan from highlights (they only get PDF)
-                                                if (isBasicPlan) {
+                                                if (isRestrictedSession && !isUpgradedUser) {
                                                     setShowUpgradeModal(true);
                                                 } else {
-                                                    // Free, Pro Access, and Premium Plan can access highlights
+                                                    // Either session is not restricted (it's yearly/free) 
+                                                    // OR current user is yearly (can see anything)
                                                     setConversationTab("highlights");
                                                 }
                                             }}

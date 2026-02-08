@@ -690,7 +690,7 @@ function PortfolioView({ onBack }) {
             </div>
             <div className="relative z-10 max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[#D4F478] mb-4 md:mb-6 border border-white/5">{view === "creator" ? "Available for Projects" : "Ready for Interviews"}</div>
-              <h1 className="text-3xl md:text-6xl font-black text-white tracking-tighter mb-3 md:mb-4 px-2">{user?.name || "Swaroop Bhati"}</h1>
+              <h1 className="text-3xl md:text-6xl font-black text-white tracking-tighter mb-3 md:mb-4 px-2">{user?.name || "Candidate"}</h1>
               <p className="text-gray-400 text-sm md:text-xl font-medium leading-relaxed mb-6 md:mb-8 px-4">{user?.bio || (view === "creator" ? "Full-stack Engineer specializing in high-performance systems." : "Results-driven developer with proven technical excellence.")}</p>
               <div className="flex flex-wrap justify-center gap-3 md:gap-4">
                 {[Github, Twitter, Linkedin, Globe].map((Icon, i) => (<a key={i} href="#" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-white hover:bg-white hover:text-black transition-all duration-300"><Icon className="w-4 h-4 md:w-5 md:h-5" /></a>))}

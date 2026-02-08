@@ -1,19 +1,54 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { User, Mail, Phone, MapPin, Camera, Save, Shield, Key } from 'lucide-react';
 
 const ProfileSettings = () => {
     const [formData, setFormData] = useState({
-        firstName: "Admin",
-        lastName: "User",
-        email: "admin@example.com",
-        phone: "+1 (555) 123-4567",
-        bio: "Senior Administrator with 5+ years of experience in managing educational platforms.",
-        location: "Bengaluru, India"
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        bio: "",
+        location: ""
     });
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get("http://localhost:5000/api/auth/check-auth", { withCredentials: true });
+                if (response.data.success) {
+                    const { name, email, phone, bio, location } = response.data.user;
+                    const names = name.split(" ");
+                    setFormData({
+                        firstName: names[0] || "",
+                        lastName: names.slice(1).join(" ") || "",
+                        email: email || "",
+                        phone: phone || "",
+                        bio: bio || "Administrator",
+                        location: location || "India"
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    if (loading) {
+        return (
+            <div className="p-8 flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto font-sans text-slate-900">

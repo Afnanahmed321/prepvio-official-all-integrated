@@ -20,6 +20,7 @@ import {
   XCircle,
   Award
 } from "lucide-react";
+import { useAuthStore } from "../../../../store/authstore";
 
 // --- ANIMATION VARIANTS ---
 const containerVariants = {
@@ -50,6 +51,7 @@ export default function AptitudeTest() {
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(null);
+  const { user } = useAuthStore();
 
 
   // Fetch random questions from API
@@ -633,13 +635,13 @@ export default function AptitudeTest() {
               <div className="w-28 h-28 mx-auto mb-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#D4F478] to-blue-500 rounded-full animate-spin-slow opacity-30" />
                 <img
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400"
+                  src={user?.profilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || "Guest")}`}
                   className="w-full h-full object-cover rounded-full border-4 border-white/10 shadow-2xl relative z-10"
                   alt="Candidate"
                 />
                 <div className="absolute bottom-1 right-1 w-7 h-7 bg-emerald-500 border-4 border-[#1A1A1A] rounded-full z-20" />
               </div>
-              <h3 className="text-2xl font-black text-white tracking-tight">Swaroop Bhati</h3>
+              <h3 className="text-2xl font-black text-white tracking-tight">{user?.name || "Candidate"}</h3>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <ShieldCheck className="w-3 h-3 text-[#D4F478]" />
                 <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">Verified Candidate</p>
