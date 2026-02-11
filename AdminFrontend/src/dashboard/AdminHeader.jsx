@@ -9,7 +9,6 @@ import {
     Check
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const AdminHeader = () => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -29,21 +28,25 @@ const AdminHeader = () => {
     const unreadCount = notifications.filter(n => !n.read).length;
 
     useEffect(() => {
-        const fetchUser = async () => {
+        // ✅ Read admin data from localStorage (set during login)
+        const adminUserData = localStorage.getItem('adminUser');
+        const adminToken = localStorage.getItem('adminToken');
+
+        if (adminUserData && adminToken) {
             try {
-                const response = await axios.get("http://localhost:5000/api/auth/check-auth", { withCredentials: true });
-                if (response.data.success) {
-                    setUser(response.data.user);
-                }
+                const parsedUser = JSON.parse(adminUserData);
+                setUser(parsedUser);
+                console.log("✅ Admin user loaded from localStorage:", parsedUser);
             } catch (error) {
-                console.error("Failed to fetch user:", error);
-                // Redirect to login if 401 Unauthorized
-                if (error.response?.status === 401) {
-                    window.location.href = "http://localhost:5173/login";
-                }
+                console.error("Failed to parse admin user data:", error);
+                // Redirect to login if data is corrupted
+                window.location.href = "http://localhost:5174/admin-login";
             }
-        };
-        fetchUser();
+        } else {
+            // No admin data found, redirect to login
+            console.warn("⚠️ No admin data found, redirecting to login");
+            window.location.href = "http://localhost:5174/admin-login";
+        }
     }, []);
 
     const handleMarkAllRead = () => {
@@ -52,12 +55,16 @@ const AdminHeader = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
-            localStorage.removeItem("token"); // Fallback
-            window.location.href = "http://localhost:5173/login";
+            // Clear localStorage
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminUser");
+            localStorage.removeItem("adminRole");
+
+            // Redirect to login
+            window.location.href = "http://localhost:5174/admin-login";
         } catch (error) {
             console.error("Logout failed:", error);
-            window.location.href = "http://localhost:5173/login";
+            window.location.href = "http://localhost:5174/admin-login";
         }
     };
 
@@ -148,12 +155,12 @@ const AdminHeader = () => {
                             {user?.avatarUrl ? (
                                 <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
-                                <span>{user?.name?.charAt(0) || <User className="w-5 h-5" />}</span>
+                                <span>{user?.name?.charAt(0) || "A"}</span>
                             )}
                         </div>
                         <div className="hidden sm:block text-left">
-                            <p className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{user?.name || "Loading..."}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user?.role || "..."}</p>
+                            <p className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{user?.name || "Admin User"}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user?.userId || user?.role || "Admin"}</p>
                         </div>
                         <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`} />
                     </button>
@@ -173,8 +180,9 @@ const AdminHeader = () => {
                                             )}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-800">{user?.name || "Loading..."}</p>
-                                            <p className="text-xs text-slate-500 text-ellipsis overflow-hidden w-32 whitespace-nowrap">{user?.email || "..."}</p>
+                                            <p className="font-bold text-slate-800">{user?.name || "Admin User"}</p>
+                                            <p className="text-xs text-slate-500 text-ellipsis overflow-hidden w-32 whitespace-nowrap">{user?.email || "admin@example.com"}</p>
+                                            {user?.userId && <p className="text-[10px] font-bold text-indigo-500 mt-0.5">ID: {user.userId}</p>}
                                         </div>
                                     </div>
                                 </div>

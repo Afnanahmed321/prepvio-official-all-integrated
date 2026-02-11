@@ -1,6 +1,6 @@
 import express from "express";
 import { User } from "../models/User.js";
-import { verifyToken } from "../middleware/verifytoken.js";
+import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import { sendCourseStartedNotification, sendCourseCompletedNotification } from "../Utils/notificationHelper.js";
 import { deduplicateCourseProgress } from "../Utils/courseHelper.js";
 
@@ -825,7 +825,7 @@ router.get("/dashboard", verifyToken, async (req, res) => {
 /* =========================================================
    ADMIN: GET ALL USERS (FOR USER MANAGEMENT)
 ========================================================= */
-router.get("/admin/all-users", async (req, res) => {
+router.get("/admin/all-users", verifyToken, isAdmin, async (req, res) => {
   try {
     const users = await User.find({})
       .select("firstName lastName name email isVerified createdAt");
@@ -849,7 +849,7 @@ router.get("/admin/all-users", async (req, res) => {
 /* =========================================================
    ADMIN: FULL USER LEARNING DETAILS
 ========================================================= */
-router.get("/admin/user/:userId", async (req, res) => {
+router.get("/admin/user/:userId", verifyToken, isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -1035,7 +1035,7 @@ router.get("/aptitude/latest", verifyToken, async (req, res) => {
 /* =========================================================
    ADMIN: DELETE USER
 ========================================================= */
-router.delete("/admin/delete/:id", verifyToken, async (req, res) => {
+router.delete("/admin/delete/:id", verifyToken, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByIdAndDelete(id);

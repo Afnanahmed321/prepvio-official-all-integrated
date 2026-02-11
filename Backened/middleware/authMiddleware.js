@@ -3,12 +3,16 @@ import { User } from "../Models/User.js";
 
 export const verifyToken = async (req, res, next) => {
   try {
-    // 1️⃣ CHECK MULTIPLE COOKIE NAMES
-    let token = req.cookies?.token || req.cookies?.user_token || req.cookies?.admin_token || req.cookies?.user_auth_token;
+    let token = null;
 
-    // 2️⃣ CHECK AUTHORIZATION HEADER
-    if (!token && req.headers.authorization?.startsWith("Bearer")) {
+    // 1️⃣ CHECK AUTHORIZATION HEADER (Highest priority for cross-port isolation)
+    if (req.headers.authorization?.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
+    }
+
+    // 2️⃣ CHECK COOKIES (Fallback)
+    if (!token) {
+      token = req.cookies?.token || req.cookies?.user_token || req.cookies?.admin_token || req.cookies?.user_auth_token;
     }
 
     if (!token) {
@@ -20,7 +24,9 @@ export const verifyToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded?.id) {
+    const userId = decoded.id || decoded.userId;
+
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized - invalid token",
@@ -28,7 +34,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     // 3️⃣ HANDLE HARDCODED ADMIN
-    if (decoded.id === "admin") {
+    if (userId === "admin" || userId === "admin-fallback") {
       req.user = {
         _id: "admin",
         id: "admin",
@@ -66,7 +72,7 @@ export const verifyToken = async (req, res, next) => {
 export const isAdmin = (req, res, next) => {
   const userRole = req.user?.role?.toLowerCase();
 
-  if (userRole === 'admin') {
+  if (userRole === 'admin' || userRole === 'superadmin') {
     next();
   } else {
     res.status(403).json({

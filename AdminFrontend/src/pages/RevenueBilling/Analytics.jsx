@@ -62,7 +62,9 @@ export default function StatisticsDashboard() {
     activeSubs: 0,
     arpu: 0,
     conversionRate: 0,
-    totalUsers: 0
+    totalUsers: 0,
+    payingUsersCount: 0,
+    dailyVisitors: 0
   });
   const [analytics, setAnalytics] = useState({
     revenueGrowth: [],
@@ -73,7 +75,7 @@ export default function StatisticsDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
+        const token = localStorage.getItem("adminToken");
         const config = {
           headers: { Authorization: `Bearer ${token}` }
         };
@@ -82,7 +84,7 @@ export default function StatisticsDashboard() {
           axios.get('/api/revenue/overview', config),
           axios.get('/api/revenue/analytics', config)
         ]);
-        if (overviewRes.data.success) setData(overviewRes.data);
+        if (overviewRes.data.success) setData(prev => ({ ...prev, ...overviewRes.data }));
         if (analyticsRes.data.success) setAnalytics(analyticsRes.data);
       } catch (error) {
         console.error("Failed to fetch statistics", error);
@@ -141,7 +143,7 @@ export default function StatisticsDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <StatCard
             title="Total Users"
-            value={loading ? "..." : data.totalUsers.toLocaleString('en-IN')}
+            value={loading ? "..." : (data.totalUsers || 0).toLocaleString('en-IN')}
             change="REAL TIME"
             trend="up"
             icon={Users}
@@ -149,7 +151,7 @@ export default function StatisticsDashboard() {
           />
           <StatCard
             title="Paying Users"
-            value={loading ? "..." : data.payingUsersCount.toLocaleString('en-IN')}
+            value={loading ? "..." : (data.payingUsersCount || 0).toLocaleString('en-IN')}
             change="SUCCESSFUL"
             trend="up"
             icon={User}
@@ -157,7 +159,7 @@ export default function StatisticsDashboard() {
           />
           <StatCard
             title="Total Revenue"
-            value={loading ? "..." : `₹${data.totalRevenue.toLocaleString('en-IN')}`}
+            value={loading ? "..." : `₹${(data.totalRevenue || 0).toLocaleString('en-IN')}`}
             change="GROSS"
             trend="up"
             icon={IndianRupee}
@@ -165,7 +167,7 @@ export default function StatisticsDashboard() {
           />
           <StatCard
             title="Active Subscriptions"
-            value={loading ? "..." : data.activeSubs.toLocaleString('en-IN')}
+            value={loading ? "..." : (data.activeSubs || 0).toLocaleString('en-IN')}
             change="ONGOING"
             trend="up"
             icon={Package}
@@ -179,7 +181,7 @@ export default function StatisticsDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide">Daily Visitors</p>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{loading ? "..." : data.dailyVisitors.toLocaleString('en-IN')}</h3>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{loading ? "..." : (data.dailyVisitors || 0).toLocaleString('en-IN')}</h3>
                 <p className="text-xs font-bold text-emerald-600 mt-2">ACTIVE IN 24H</p>
               </div>
               <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
@@ -192,7 +194,7 @@ export default function StatisticsDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide">Conversion Rate</p>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{loading ? "..." : `${data.conversionRate.toFixed(1)}%`}</h3>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{loading ? "..." : `${(data.conversionRate || 0).toFixed(1)}%`}</h3>
                 <p className="text-xs font-bold text-blue-600 mt-2">USER TO PAID</p>
               </div>
               <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
@@ -205,7 +207,7 @@ export default function StatisticsDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide">Avg. Revenue/User</p>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{loading ? "..." : data.arpu.toLocaleString('en-IN', { maximumFractionDigits: 1 })}</h3>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{loading ? "..." : (data.arpu || 0).toLocaleString('en-IN', { maximumFractionDigits: 1 })}</h3>
                 <p className="text-xs font-bold text-rose-600 mt-2">PER REGISTERED USER</p>
               </div>
               <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all">

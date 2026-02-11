@@ -270,11 +270,16 @@ export const getAllTickets = async (req, res) => {
 
         const formattedTickets = tickets.map(ticket => ({
             ...ticket.toClientFormat(),
-            user: {
+            user: ticket.userId ? {
                 id: ticket.userId._id,
                 name: ticket.userId.name,
                 email: ticket.userId.email,
                 avatar: ticket.userId.avatar
+            } : {
+                id: null,
+                name: "Deleted User",
+                email: "N/A",
+                avatar: null
             }
         }));
 

@@ -39,7 +39,9 @@ export const verifyToken = async (req, res, next) => {
     console.log("DEBUG: Main verifyToken - Using secret:", secret === "mydevsecret" ? "FALLBACK" : "ENV");
     const decoded = jwt.verify(token, secret);
 
-    if (!decoded?.id) {
+    const userId = decoded.id || decoded.userId;
+
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized - invalid token",
@@ -47,7 +49,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     // ✅ ADMIN BYPASS: If it's the admin user, skip database lookup
-    if (decoded.id === "admin" && decoded.isAdmin) {
+    if ((userId === "admin" || userId === "admin-fallback") && (decoded.isAdmin || decoded.role === 'admin')) {
       req.userId = "admin";
       req.isAdmin = true;
       return next();

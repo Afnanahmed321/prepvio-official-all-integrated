@@ -171,22 +171,14 @@ export const login = async (req, res) => {
       const isPasswordValid = await bcryptjs.compare(password, user.password);
 
       if (isPasswordValid) {
-        // Check if DB user is an ADMIN
-        if (user.role === "admin") {
-          const token = jwt.sign({ id: user._id, isAdmin: true }, process.env.JWT_SECRET, {
-            expiresIn: "7d"
-          });
+        console.log("Password valid. User Role:", user.role);
 
-          // ✅ SET SEPARATE ADMIN COOKIE
-          generateTokenAndSetCookie(res, user._id, "admin_token");
-
-          return res.status(200).json({
-            success: true,
-            message: "Admin logged in successfully",
-            token: token,
-            user: { ...user._doc, password: undefined },
-            isAdmin: true,
-            redirectUrl: process.env.ADMIN_DASHBOARD_URL || "http://localhost:5174"
+        // ❌ BLOCK ADMINS FROM LOGGING IN HERE
+        if (user.role === "admin" || user.role === "superadmin") {
+          console.log("⛔ Blocking Admin from User Portal");
+          return res.status(403).json({
+            success: false,
+            message: "Admins must login via the Admin Portal (port 5174)",
           });
         }
 
@@ -214,29 +206,11 @@ export const login = async (req, res) => {
     }
 
     // 3. FALLBACK: Check Hardcoded Admin (if DB login failed or user not found)
-    // Only if the input matches exact env email
+    // ❌ BLOCK HARDCODED ADMIN FROM USER PORTAL
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const adminUser = {
-        _id: "admin",
-        email: process.env.ADMIN_EMAIL,
-        name: "Admin",
-        isAdmin: true
-      };
-
-      const token = jwt.sign({ id: "admin", isAdmin: true }, process.env.JWT_SECRET, {
-        expiresIn: "7d"
-      });
-
-      // ✅ SET SEPARATE ADMIN COOKIE for hardcoded admin
-      generateTokenAndSetCookie(res, "admin", "admin_token");
-
-      return res.status(200).json({
-        success: true,
-        message: "Admin logged in successfully",
-        token: token,
-        user: adminUser,
-        isAdmin: true,
-        redirectUrl: process.env.ADMIN_DASHBOARD_URL || "http://localhost:5174"
+      return res.status(403).json({
+        success: false,
+        message: "Admins must login via the Admin Portal (port 5174)"
       });
     }
 
@@ -385,3 +359,4 @@ export const addProject = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

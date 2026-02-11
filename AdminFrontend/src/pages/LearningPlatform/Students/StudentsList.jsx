@@ -35,16 +35,10 @@ export default function UserManagement() {
        FETCH USERS FROM BACKEND
     ================================ */
     useEffect(() => {
-        const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
-        fetch('http://localhost:5000/api/users/admin/all-users', {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setUsers(data.data);
+        axios.get('http://localhost:5000/api/users/admin/all-users')
+            .then(res => {
+                if (res.data.success) {
+                    setUsers(res.data.data);
                 }
                 setLoading(false);
             })
@@ -58,16 +52,10 @@ export default function UserManagement() {
      FETCH GLOBAL INTERVIEW STATS (ADMIN)
   =============================== */
     useEffect(() => {
-        const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
-        fetch('http://localhost:5000/api/interview-session/admin/stats', {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setInterviewStats(data.stats);
+        axios.get('http://localhost:5000/api/interview-session/admin/stats')
+            .then(res => {
+                if (res.data.success) {
+                    setInterviewStats(res.data.stats);
                 }
             })
             .catch(err => {
@@ -85,16 +73,9 @@ export default function UserManagement() {
         setLoadingDetails(prev => ({ ...prev, [userId]: true }));
 
         try {
-            const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
-            const res = await fetch(`http://localhost:5000/api/users/admin/user/${userId}`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                setUserDetails(prev => ({ ...prev, [userId]: data }));
+            const res = await axios.get(`http://localhost:5000/api/users/admin/user/${userId}`);
+            if (res.data.success) {
+                setUserDetails(prev => ({ ...prev, [userId]: res.data }));
             }
         } catch (err) {
             console.error('Failed to fetch user details', err);
@@ -112,16 +93,9 @@ export default function UserManagement() {
         setLoadingInterviews(prev => ({ ...prev, [userId]: true }));
 
         try {
-            const token = localStorage.getItem("ADMIN_AUTH_TOKEN");
-            const res = await fetch(`http://localhost:5000/api/interview-session/admin/user/${userId}`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                setInterviews(prev => ({ ...prev, [userId]: data.interviews }));
+            const res = await axios.get(`http://localhost:5000/api/interview-session/admin/user/${userId}`);
+            if (res.data.success) {
+                setInterviews(prev => ({ ...prev, [userId]: res.data.interviews }));
             }
         } catch (err) {
             console.error('Failed to fetch interview details', err);
@@ -233,10 +207,8 @@ export default function UserManagement() {
     const confirmDeleteUser = async () => {
         if (userToDelete) {
             try {
-                const token = localStorage.getItem('ADMIN_AUTH_TOKEN');
-                await axios.delete(`http://localhost:5000/api/users/admin/delete/${userToDelete.id || userToDelete._id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const token = localStorage.getItem('adminToken');
+                await axios.delete(`http://localhost:5000/api/users/admin/delete/${userToDelete.id || userToDelete._id}`);
                 setUsers(prev => prev.filter(user => (user.id || user._id) !== (userToDelete.id || userToDelete._id)));
                 toast.success("User deleted successfully");
             } catch (err) {

@@ -38,15 +38,8 @@ export const useAuthStore = create((set) => ({
         try {
             const response = await axios.post(`${API_URL}/login`, { email, password });
 
-            if (response.data.isAdmin && response.data.redirectUrl) {
-                // Redirect directly - Admin App handles its own 'admin_auth_token' from URL
-                const redirectUrl = new URL(response.data.redirectUrl);
-                if (response.data.token) {
-                    redirectUrl.searchParams.set("token", response.data.token);
-                }
-                window.location.href = redirectUrl.toString();
-                return;
-            }
+            // ❌ Removed Admin Redirect Logic to prevent 5173 -> 5174 auto-redirects
+            // The backend should block admins with a 403 error.
 
             // ✅ Store user-specific token
             if (response.data.token) {

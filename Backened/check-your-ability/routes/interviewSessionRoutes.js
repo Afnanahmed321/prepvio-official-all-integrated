@@ -235,7 +235,7 @@
 
 import express from "express";
 import { InterviewSession } from "../models/InterviewSession.js";
-import { verifyToken } from "../../middleware/verifytoken.js";
+import { verifyToken, isAdmin } from "../../middleware/authMiddleware.js";
 import { User } from "../../models/User.js"; // ✅ ADD THIS
 import { sendInterviewCompletedNotification, sendCreditsExhaustedNotification } from "../../Utils/notificationHelper.js";
 
@@ -445,7 +445,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 // ✅ ADMIN: get all interview sessions for a user
-router.get("/admin/user/:userId", async (req, res) => {
+router.get("/admin/user/:userId", verifyToken, isAdmin, async (req, res) => {
   try {
     const sessions = await InterviewSession.find({
       userId: req.params.userId
@@ -467,7 +467,7 @@ router.get("/admin/user/:userId", async (req, res) => {
 });
 
 // ✅ ADMIN: GLOBAL INTERVIEW STATS
-router.get("/admin/stats", async (req, res) => {
+router.get("/admin/stats", verifyToken, isAdmin, async (req, res) => {
   try {
     const sessions = await InterviewSession.find({}).select(
       "status companyType messages solvedProblems highlightClips"

@@ -1,13 +1,13 @@
 import express from "express";
-import { verifyToken } from "../middleware/verifytoken.js";
+import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import { getAllEmployees, addEmployee, deleteEmployee } from "../Controllers/employee.controller.js";
 import { getAllDepartments, addDepartment } from "../Controllers/department.controller.js";
 import { getDailyAttendance, markAttendance } from "../Controllers/attendance.controller.js";
 
 const router = express.Router();
 
-// Apply verifyToken to all routes
-router.use(verifyToken);
+// Apply verifyToken and isAdmin to all routes
+router.use(verifyToken, isAdmin);
 
 // Employee routes
 router.get("/all", getAllEmployees);

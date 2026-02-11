@@ -57,13 +57,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem('ADMIN_AUTH_TOKEN'); // Ensure this key is used for retrieval
+      const token = localStorage.getItem('adminToken'); // Ensure this key is used for retrieval
 
       // If no token exists, redirect to login immediately
       if (!token) {
         toast.error("Please login first");
         setTimeout(() => {
-          window.location.href = "http://localhost:5173/login";
+          window.location.href = "http://localhost:5174/admin-login";
         }, 1000);
         return;
       }
@@ -95,10 +95,11 @@ const Dashboard = () => {
 
         // Only redirect if ALL or MOST requests fail with 401 (means token is invalid)
         if (unauthorizedCount >= 3) {
-          localStorage.removeItem('ADMIN_AUTH_TOKEN');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminRole');
           toast.error("Session expired. Please login again.");
           setTimeout(() => {
-            window.location.href = "http://localhost:5173/login";
+            window.location.href = "http://localhost:5174/admin-login";
           }, 1500);
           return;
         }
@@ -169,7 +170,7 @@ const Dashboard = () => {
     if (!userToDelete) return;
     try {
       setIsDeleting(true);
-      const token = localStorage.getItem('ADMIN_AUTH_TOKEN');
+      const token = localStorage.getItem('adminToken');
       const res = await axios.delete(`http://localhost:5000/api/users/admin/delete/${userToDelete.id || userToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true

@@ -1,15 +1,13 @@
 import express from "express";
 import { getOverview, getAnalytics, getInvoices, getActiveSubscriptions } from "../Controllers/revenueController.js";
-import { verifyToken } from "../middleware/verifytoken.js";
+import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Middleware to ensure admin access can be added here
-// For now, using verifyToken. Ideally, verifyAdmin should also be used.
-
-router.get("/overview", verifyToken, getOverview);
-router.get("/analytics", verifyToken, getAnalytics);
-router.get("/invoices", verifyToken, getInvoices);
-router.get("/active-subscriptions", verifyToken, getActiveSubscriptions);
+// Middleware to ensure admin access
+router.get("/overview", verifyToken, isAdmin, getOverview);
+router.get("/analytics", verifyToken, isAdmin, getAnalytics);
+router.get("/invoices", verifyToken, isAdmin, getInvoices);
+router.get("/active-subscriptions", verifyToken, isAdmin, getActiveSubscriptions);
 
 export default router;

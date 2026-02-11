@@ -33,6 +33,7 @@ import aiRoutes from "./Routes/aiRoutes.js";
 import projectSubmissionRoutes from "./Routes/ProjectSubmission.route.js";
 import revenueRoutes from "./Routes/revenueRoutes.js";
 import employeeRoutes from "./Routes/employeeRoutes.js";
+import adminAuthRoutes from "./Routes/adminAuth.js";
 
 const nervousCaptures = new Map();
 import fs from "fs";
@@ -63,6 +64,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/project-submissions", projectSubmissionRoutes);
 app.use("/api/revenue", revenueRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/admin", adminAuthRoutes);
 
 // Attach socket.io to request object
 app.use((req, res, next) => {
